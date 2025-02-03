@@ -6,7 +6,6 @@ export default function Example() {
   const { data } = trpc.greeting.greeting.useQuery({
     name: "testing",
   });
-  return <ThemedText>Testing {data?.greeting ?? ""}</ThemedText>;
-}
 
-// make text white
+  return <Text className="!text-red-300">Testing {data?.greeting ?? ""}</Text>;
+}
