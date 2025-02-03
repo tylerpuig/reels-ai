@@ -5,6 +5,7 @@ import { useState } from "react";
 import { trpc } from "../trpc";
 import superjson from "superjson";
 import {
+  type Theme,
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
@@ -16,13 +17,29 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { verifyInstallation } from "nativewind";
-import { useColorScheme } from "@/hooks/useColorScheme";
+// import { useColorScheme } from "@/hooks/useColorScheme";
+import { NAV_THEME } from "~/lib/constants";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+export {
+  // Catch any errors thrown by the Layout component.
+  ErrorBoundary,
+} from "expo-router";
+
+const LIGHT_THEME: Theme = {
+  ...DefaultTheme,
+  colors: NAV_THEME.light,
+};
+const DARK_THEME: Theme = {
+  ...DarkTheme,
+  colors: NAV_THEME.dark,
+};
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // const colorScheme = useColorScheme();
+
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -49,10 +66,10 @@ export default function RootLayout() {
     return null;
   }
 
-  verifyInstallation();
+  // verifyInstallation();
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DARK_THEME}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <Stack>
