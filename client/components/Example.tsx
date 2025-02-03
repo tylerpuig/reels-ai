@@ -1,11 +1,18 @@
-import { Image, StyleSheet, Platform } from "react-native";
-import { ThemedText } from "@/components/ThemedText";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { trpc } from "../trpc";
+import { Button } from "~/components/ui/button";
+
 export default function Example() {
   const { data } = trpc.greeting.greeting.useQuery({
     name: "testing",
   });
 
-  return <Text className="!text-red-300">Testing {data?.greeting ?? ""}</Text>;
+  return (
+    <View className="">
+      <Text className="!text-red-300">Testing {data?.greeting ?? ""}</Text>
+      <Button>
+        <Text className="text-white">Click me</Text>
+      </Button>
+    </View>
+  );
 }
