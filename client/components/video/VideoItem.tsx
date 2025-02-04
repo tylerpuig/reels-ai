@@ -27,7 +27,7 @@ const { width, height } = Dimensions.get("window");
 const videoSources: Video[] = [
   {
     id: "1",
-    url: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    url: "https://www.youtube.com/shorts/weg6aryt7pY?feature=share",
     username: "BigBuckBunny",
     description: "A large rabbit fights back against bullies in a forest.",
   },
@@ -39,9 +39,23 @@ const videoSources: Video[] = [
   },
 ];
 
+function FeedToggle() {
+  return (
+    <View className="absolute top-14 left-0 right-0 z-50 flex-row justify-center">
+      <View className="flex-row bg-black/50 rounded-full p-1.5">
+        <TouchableOpacity className="px-6 py-1.5 bg-white rounded-full">
+          <Text className="text-black font-semibold">For You</Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="px-6 py-1.5">
+          <Text className="text-white font-semibold">Following</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 export function VideoFeed() {
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
-  const router = useRouter();
 
   const onViewableItemsChanged = useCallback(
     ({ changed }: { changed: ViewToken[] }) => {
@@ -58,20 +72,23 @@ export function VideoFeed() {
   );
 
   return (
-    <FlatList
-      data={videoSources}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      pagingEnabled
-      snapToInterval={height}
-      snapToAlignment="start"
-      decelerationRate="fast"
-      showsVerticalScrollIndicator={false}
-      onViewableItemsChanged={onViewableItemsChanged}
-      viewabilityConfig={{
-        itemVisiblePercentThreshold: 50,
-      }}
-    />
+    <View style={{ flex: 1 }}>
+      <FeedToggle />
+      <FlatList
+        data={videoSources}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        pagingEnabled
+        snapToInterval={height}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        showsVerticalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+        }}
+      />
+    </View>
   );
 }
 
