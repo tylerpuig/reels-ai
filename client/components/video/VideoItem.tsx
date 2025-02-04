@@ -11,6 +11,7 @@ import { Button } from "~/components/ui/button";
 import { Heart, MessageCircle, Share2, User2 } from "lucide-react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { useVideoStore } from "./useVideoStore";
 
 interface Video {
   id: string;
@@ -77,6 +78,7 @@ interface VideoItemProps {
 }
 
 function VideoItem({ video, isActive }: VideoItemProps) {
+  const { isCommentsVisible, setIsCommentsVisible } = useVideoStore();
   const player = useVideoPlayer(video.url, (player) => {
     player.loop = true;
     if (isActive) {
@@ -114,8 +116,15 @@ function VideoItem({ video, isActive }: VideoItemProps) {
           <Button variant="default" size="icon" className="bg-transparent">
             <Heart className="h-7 w-7 text-white" />
           </Button>
-          <Text className="text-white">10k</Text>
-          <Button variant="default" size="icon" className="bg-transparent">
+          <Text className="text-white">103k</Text>
+          <Button
+            onPress={() => {
+              setIsCommentsVisible(true);
+            }}
+            variant="default"
+            size="icon"
+            className="bg-transparent"
+          >
             <MessageCircle className="h-7 w-7 text-white" />
           </Button>
           <Text className="text-white">826</Text>
