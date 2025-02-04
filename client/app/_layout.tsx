@@ -3,7 +3,7 @@ import "../global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { useState, useEffect } from "react";
-import { trpc } from "../trpc";
+import { trpc } from "../trpc/client";
 import superjson from "superjson";
 import {
   Theme,
@@ -59,15 +59,15 @@ export default function RootLayout() {
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: "http://10.10.1.153:4130/trpc",
-          headers: async () => {
-            const {
-              data: { session },
-            } = await supabase.auth.getSession();
-            return {
-              Authorization: session?.access_token ?? "",
-            };
-          },
+          url: "https://6a6a-69-212-112-109.ngrok-free.app/trpc",
+          // headers: async () => {
+          //   const {
+          //     data: { session },
+          //   } = await supabase.auth.getSession();
+          //   return {
+          //     Authorization: session ? `Bearer ${session.access_token}` : "",
+          //   };
+          // },
         }),
       ],
       transformer: superjson,
@@ -86,8 +86,6 @@ export default function RootLayout() {
       </ThemeProvider>
     );
   }
-
-  console.log(session);
 
   // Otherwise show main app
   return (

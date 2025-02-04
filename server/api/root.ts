@@ -1,8 +1,10 @@
-import { createTRPCRouter } from "./trpc";
-import { greetingRouter } from "./routers/greeting";
+import { createTRPCRouter } from "./trpc.js";
+import { greetingRouter } from "./routers/greeting.js";
+import { videosRouter } from "./routers/videos.js";
 
 export const appRouter = createTRPCRouter({
   greeting: greetingRouter,
+  videos: videosRouter,
 });
 
 // export type definition of API

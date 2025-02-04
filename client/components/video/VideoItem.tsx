@@ -23,77 +23,42 @@ import { useRouter } from "expo-router";
 import { FeedToggle } from "./FeedToggle";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Video as ExpoVideo, ResizeMode } from "expo-av";
-
-interface Video {
-  id: string;
-  url: number;
-  username: string;
-  description: string;
-}
+import { type VideoData } from "~/trpc/types";
+import { trpc } from "@/trpc/client";
 
 const { width, height } = Dimensions.get("window");
-console.log(width, height);
 const TAB_BAR_HEIGHT = 49;
 
-const videoSources: Video[] = [
-  {
-    id: "1",
-    url: require("../../videos/ny_video.mp4"),
-    username: "New York Penthouse",
-    description: "New York Penthouse",
-  },
-  {
-    id: "2",
-    url: require("../../videos/most_expensive_il.mp4"),
-    username: "Sintel",
-    description: "Most expensive house in Illinois",
-  },
-  {
-    id: "3",
-    url: require("../../videos/penhoust_palace_chi.mp4"),
-    username: "Penhoust Palace",
-    description: "Huge Penhouse Palace in Chicago",
-  },
-  {
-    id: "4",
-    url: require("../../videos/penhoust_palace_chi.mp4"),
-    username: "Penhoust Palace",
-    description: "Huge Penhouse Palace in Chicago",
-  },
-  {
-    id: "5",
-    url: require("../../videos/penhoust_palace_chi.mp4"),
-    username: "Penhoust Palace",
-    description: "Huge Penhouse Palace in Chicago",
-  },
-];
-
 export function VideoFeed() {
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const { setActiveVideoId, videoPaginationSkip } = useVideoStore();
   const insets = useSafeAreaInsets();
   const containerHeight = height - TAB_BAR_HEIGHT - insets.top;
 
   const onViewableItemsChanged = useCallback(
     ({ changed }: { changed: ViewToken[] }) => {
-      const newActiveIndex = changed[0]?.index;
-      if (newActiveIndex != null && newActiveIndex !== activeVideoIndex) {
-        setActiveVideoIndex(newActiveIndex);
+      const changedItem = changed[0];
+      if (changedItem?.isViewable && changedItem.item) {
+        setActiveVideoId(changedItem.item.id);
       }
     },
-    [activeVideoIndex]
+    [setActiveVideoId]
   );
 
-  const renderItem = ({ item, index }: { item: Video; index: number }) => (
-    <VideoItem video={item} isActive={index === activeVideoIndex} />
+  const { data: videos } = trpc.videos.getVideos.useQuery({
+    skip: videoPaginationSkip,
+  });
+
+  const renderItem = ({ item }: { item: VideoData }) => (
+    <VideoItem video={item} isActive={true} />
   );
 
   return (
     <View style={{ flex: 1 }}>
       <FeedToggle />
       <FlatList
-        data={videoSources}
+        data={videos ?? []}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         pagingEnabled
         snapToInterval={containerHeight}
         snapToAlignment="start"
@@ -109,38 +74,45 @@ export function VideoFeed() {
 }
 
 interface VideoItemProps {
-  video: Video;
+  video: VideoData;
   isActive: boolean;
 }
 
-function VideoItem({ video }: VideoItemProps) {
+function VideoItem({ video, isActive }: VideoItemProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const videoRef = React.useRef<ExpoVideo>(null);
   const [status, setStatus] = React.useState({});
   const { setIsCommentsVisible } = useVideoStore();
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(!isActive);
   const [showPlayButton, setShowPlayButton] = useState(false);
 
   React.useEffect(() => {
     if (videoRef.current) {
-      if (!isPaused) {
+      if (isActive && !isPaused) {
         videoRef.current.playAsync();
       } else {
         videoRef.current.pauseAsync();
       }
     }
-  }, [isPaused]);
 
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pauseAsync();
+      }
+    };
+  }, [isActive, isPaused]);
+
+  // Update isPaused state when isActive changes
   // React.useEffect(() => {
-  //   setIsPaused(false);
-  // }, [video]);
+  //   if (!isActive) {
+  //     setIsPaused(true);
+  //   }
+  // }, [isActive]);
 
-  const handleVideoPress = async () => {
+  const handleVideoPress = () => {
     setIsPaused(!isPaused);
     setShowPlayButton(true);
-    // Hide the play/pause button after 2 seconds
-    setShowPlayButton(false);
   };
 
   const styles = StyleSheet.create({
@@ -216,12 +188,11 @@ function VideoItem({ video }: VideoItemProps) {
         <ExpoVideo
           ref={videoRef}
           style={styles.video}
-          source={video.url}
+          source={{ uri: video.videoUrl }}
           resizeMode={ResizeMode.COVER}
           isLooping
-          shouldPlay={true}
-          // shouldPlay={true}
-          onPlaybackStatusUpdate={(status) => setStatus(status)}
+          shouldPlay={isActive && !isPaused}
+          onPlaybackStatusUpdate={setStatus}
         />
       </TouchableOpacity>
 
@@ -236,9 +207,10 @@ function VideoItem({ video }: VideoItemProps) {
           </View>
         </View>
       )}
+
       <View style={styles.overlayContainer}>
         <View style={styles.textContainer}>
-          <Text style={styles.username}>{video.username}</Text>
+          <Text style={styles.username}>{video.title}</Text>
           <Text style={styles.description}>{video.description}</Text>
         </View>
 
@@ -265,7 +237,7 @@ function VideoItem({ video }: VideoItemProps) {
             <Button variant="default" size="icon" className="bg-transparent">
               <Heart className="h-7 w-7 text-white" />
             </Button>
-            <Text style={styles.buttonText}>103k</Text>
+            <Text style={styles.buttonText}>{video.likeCount}</Text>
           </View>
 
           <View style={{ alignItems: "center" }}>
@@ -279,7 +251,7 @@ function VideoItem({ video }: VideoItemProps) {
             >
               <MessageCircle className="h-7 w-7 text-white" />
             </Button>
-            <Text style={styles.buttonText}>826</Text>
+            <Text style={styles.buttonText}>{video.commentCount}</Text>
           </View>
 
           <Button

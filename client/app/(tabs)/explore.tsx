@@ -1,5 +1,5 @@
 import { StyleSheet, Image, Platform } from "react-native";
-
+import { useEffect } from "react";
 import { Collapsible } from "@/components/Collapsible";
 import { ExternalLink } from "@/components/ExternalLink";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
@@ -9,6 +9,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { supabase } from "../../lib/supabase";
 import { Alert, Text } from "react-native";
 import { Button } from "~/components/ui/button";
+import { trpc } from "../../trpc/client";
 
 export default function TabTwoScreen() {
   async function signOut() {
@@ -17,6 +18,18 @@ export default function TabTwoScreen() {
       Alert.alert("Error signing out:", error.message);
     }
   }
+
+  const greeting = trpc.greeting.greeting.useQuery(
+    {
+      name: "another",
+    },
+    {
+      refetchOnMount: true,
+    }
+  );
+
+  console.log(greeting.data);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
@@ -38,6 +51,10 @@ export default function TabTwoScreen() {
       <Button onPress={() => signOut()}>
         <Text>Signout</Text>
       </Button>
+
+      <Text className="text-black">
+        {greeting.data?.greeting ?? "Loading..."}
+      </Text>
       <Collapsible title="File-based routing">
         <ThemedText>
           This app has two screens:{" "}
