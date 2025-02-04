@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   FlatList,
@@ -25,38 +25,42 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Video as ExpoVideo, ResizeMode } from "expo-av";
 import { type VideoData } from "~/trpc/types";
 import { trpc } from "@/trpc/client";
+import LikeButton from "./actions/LikeButton";
+import { useSessionStore } from "@/hooks/useSession";
 
 const { width, height } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = 49;
 
 export function VideoFeed() {
-  const { setActiveVideoId, videoPaginationSkip } = useVideoStore();
+  const { setSelectedVideo, videoPaginationSkip } = useVideoStore();
+  const { session } = useSessionStore();
   const insets = useSafeAreaInsets();
   const containerHeight = height - TAB_BAR_HEIGHT - insets.top;
-
-  const onViewableItemsChanged = useCallback(
-    ({ changed }: { changed: ViewToken[] }) => {
-      const changedItem = changed[0];
-      if (changedItem?.isViewable && changedItem.item) {
-        setActiveVideoId(changedItem.item.id);
-      }
-    },
-    [setActiveVideoId]
-  );
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
 
   const { data: videos } = trpc.videos.getVideos.useQuery({
     skip: videoPaginationSkip,
+    userId: session?.user?.id ?? "",
   });
 
-  const renderItem = ({ item }: { item: VideoData }) => (
-    <VideoItem video={item} isActive={true} />
-  );
+  const onViewableItemsChanged = ({ changed }: { changed: ViewToken[] }) => {
+    const changedItem = changed[0];
+    console.log(changedItem?.index);
+    setSelectedVideoIndex(changedItem?.index ?? 0);
+    if (videos?.[changedItem?.index ?? 0]) {
+      setSelectedVideo(videos?.[changedItem?.index ?? 0]);
+    }
+  };
+
+  const renderItem = ({ item, index }: { item: VideoData; index: number }) => {
+    return <VideoItem video={item} isActive={selectedVideoIndex === index} />;
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <FeedToggle />
       <FlatList
-        data={videos ?? []}
+        data={videos || []}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         pagingEnabled
@@ -84,16 +88,13 @@ function VideoItem({ video, isActive }: VideoItemProps) {
   const videoRef = React.useRef<ExpoVideo>(null);
   const [status, setStatus] = React.useState({});
   const { setIsCommentsVisible } = useVideoStore();
-  const [isPaused, setIsPaused] = useState(!isActive);
+  const [isPaused, setIsPaused] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(false);
+  const { setSelectedVideo, selectedVideo } = useVideoStore();
 
   React.useEffect(() => {
-    if (videoRef.current) {
-      if (isActive && !isPaused) {
-        videoRef.current.playAsync();
-      } else {
-        videoRef.current.pauseAsync();
-      }
+    if (videoRef.current && isActive) {
+      videoRef.current.playAsync();
     }
 
     return () => {
@@ -101,19 +102,16 @@ function VideoItem({ video, isActive }: VideoItemProps) {
         videoRef.current.pauseAsync();
       }
     };
-  }, [isActive, isPaused]);
+  }, [isActive]);
 
-  // Update isPaused state when isActive changes
-  // React.useEffect(() => {
-  //   if (!isActive) {
-  //     setIsPaused(true);
-  //   }
-  // }, [isActive]);
-
-  const handleVideoPress = () => {
-    setIsPaused(!isPaused);
-    setShowPlayButton(true);
-  };
+  function handlePause() {
+    setIsPaused((prev) => !prev);
+    if (isPaused) {
+      videoRef.current?.playAsync();
+    } else {
+      videoRef.current?.pauseAsync();
+    }
+  }
 
   const styles = StyleSheet.create({
     container: {
@@ -182,7 +180,10 @@ function VideoItem({ video, isActive }: VideoItemProps) {
     <View style={styles.container}>
       <TouchableOpacity
         activeOpacity={1}
-        onPress={handleVideoPress}
+        onPress={() => {
+          handlePause();
+          // handleVideoPress();
+        }}
         style={StyleSheet.absoluteFill}
       >
         <ExpoVideo
@@ -191,7 +192,7 @@ function VideoItem({ video, isActive }: VideoItemProps) {
           source={{ uri: video.videoUrl }}
           resizeMode={ResizeMode.COVER}
           isLooping
-          shouldPlay={isActive && !isPaused}
+          shouldPlay={false}
           onPlaybackStatusUpdate={setStatus}
         />
       </TouchableOpacity>
@@ -233,12 +234,7 @@ function VideoItem({ video, isActive }: VideoItemProps) {
             <Text style={styles.buttonText}>Profile</Text>
           </TouchableOpacity>
 
-          <View style={{ alignItems: "center" }}>
-            <Button variant="default" size="icon" className="bg-transparent">
-              <Heart className="h-7 w-7 text-white" />
-            </Button>
-            <Text style={styles.buttonText}>{video.likeCount}</Text>
-          </View>
+          <LikeButton video={video} />
 
           <View style={{ alignItems: "center" }}>
             <Button

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { type VideoData } from "~/trpc/types";
 
 type VideoStore = {
   isCommentsVisible: boolean;
@@ -8,6 +9,8 @@ type VideoStore = {
   setVideoPaginationSkip: (skip: number) => void;
   activeVideoId: number;
   setActiveVideoId: (id: number) => void;
+  selectedVideo: VideoData | null;
+  setSelectedVideo: (video: VideoData | null) => void;
 };
 
 export const useVideoStore = create<VideoStore>((set) => ({
@@ -19,4 +22,6 @@ export const useVideoStore = create<VideoStore>((set) => ({
   setVideoPaginationSkip: (skip) => set({ videoPaginationSkip: skip }),
   activeVideoId: 0,
   setActiveVideoId: (id) => set({ activeVideoId: id }),
+  selectedVideo: null,
+  setSelectedVideo: (video) => set({ selectedVideo: video }),
 }));

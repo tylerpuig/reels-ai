@@ -3,11 +3,12 @@ import fs from "fs";
 import path from "path";
 import mime from "mime-types";
 import dotenv from "dotenv";
-import { db } from "../db/utils";
-import * as schema from "../../db/schema";
-dotenv.config({
-  path: path.join(__dirname, "../../.env"),
-});
+import { db } from "../db/utils.js";
+import * as schema from "../../db/schema.js";
+// import { fileURLToPath } from "url";
+// const __filename = fileURLToPath(import.meta.url);
+
+dotenv.config({ path: "../../.env" });
 
 if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
   throw new Error("AWS credentials not found");
@@ -93,10 +94,7 @@ const uploadVideoToS3 = async (localVideoPath: string) => {
 
 async function main() {
   for (const video of videos) {
-    const localVideoPath = path.join(
-      __dirname,
-      `../../../client/videos/${video.path}`
-    );
+    const localVideoPath = path.join(process.env.VIDEOS_PATH!, `${video.path}`);
     console.log(localVideoPath);
     const s3Url = await uploadVideoToS3(localVideoPath);
     await insertVideo(video, s3Url);
@@ -109,7 +107,7 @@ async function insertVideo(video: VideoInfo, s3Url: string) {
     // const randInt = Math.floor(Math.random() * 1000);
     await db.insert(schema.videosTable).values([
       {
-        userId: 1,
+        userId: "49969f3c-a3e5-4154-b7a5-d365daa338fc",
         title: video.title,
         description: video.description,
         videoUrl: s3Url,

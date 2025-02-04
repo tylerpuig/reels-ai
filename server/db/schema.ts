@@ -13,7 +13,7 @@ import {
 
 // Users table
 export const usersTable = pgTable("users", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  id: varchar("id", { length: 255 }).primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   avatarUrl: varchar("avatar_url", { length: 255 }),
@@ -26,7 +26,7 @@ export const listingsTable = pgTable(
   "listings",
   {
     id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-    userId: integer("user_id")
+    userId: varchar("user_id", { length: 255 })
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
     price: decimal("price", { precision: 12, scale: 2 }).notNull(),
@@ -75,12 +75,9 @@ export const videosTable = pgTable(
   "videos",
   {
     id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-    userId: integer("user_id")
+    userId: varchar("user_id", { length: 255 })
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
-    // listingId: integer("listing_id").references(() => listingsTable.id, {
-    //   onDelete: "cascade",
-    // }),
     title: varchar("title", { length: 255 }).notNull(),
     description: text("description"),
     videoUrl: varchar("video_url", { length: 255 }).notNull(),
@@ -95,7 +92,6 @@ export const videosTable = pgTable(
   },
   (videos) => [
     index("video_user_idx").on(videos.userId),
-    // index("video_listing_idx").on(videos.listingId),
     index("video_embedding_idx").using(
       "hnsw",
       videos.embedding.op("vector_cosine_ops")
@@ -111,7 +107,7 @@ export const commentsTable = pgTable(
     videoId: integer("video_id")
       .references(() => videosTable.id, { onDelete: "cascade" })
       .notNull(),
-    userId: integer("user_id")
+    userId: varchar("user_id", { length: 255 })
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
     content: text("content").notNull(),
@@ -129,7 +125,7 @@ export const commentsTable = pgTable(
 export const videoLikesTable = pgTable(
   "video_likes",
   {
-    userId: integer("user_id")
+    userId: varchar("user_id", { length: 255 })
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
     videoId: integer("video_id")
@@ -147,7 +143,7 @@ export const videoLikesTable = pgTable(
 export const commentLikesTable = pgTable(
   "comment_likes",
   {
-    userId: integer("user_id")
+    userId: varchar("user_id", { length: 255 })
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
     commentId: integer("comment_id")
@@ -166,7 +162,7 @@ export const userVideoInteractionsTable = pgTable(
   "user_video_interactions",
   {
     id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-    userId: integer("user_id")
+    userId: varchar("user_id", { length: 255 })
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
     videoId: integer("video_id")

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Alert, StyleSheet, View, Text } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { Button, Input } from "@rneui/themed";
-import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
 import { APP_URL } from "../../constants/app";
 import { type Session } from "@supabase/supabase-js";
