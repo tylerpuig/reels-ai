@@ -16,8 +16,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
-import { verifyInstallation } from "nativewind";
-// import { useColorScheme } from "@/hooks/useColorScheme";
 import { NAV_THEME } from "~/lib/constants";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -66,8 +64,6 @@ export default function RootLayout() {
     return null;
   }
 
-  // verifyInstallation();
-
   return (
     <ThemeProvider value={DARK_THEME}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
@@ -75,6 +71,17 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
+            <Stack.Screen
+              name="(modals)/viewprofile/[id]"
+              options={{
+                headerShown: false,
+                title: "View Profile",
+                presentation: "card",
+                animation: "slide_from_right",
+                gestureEnabled: true,
+                gestureDirection: "horizontal",
+              }}
+            />
           </Stack>
           <StatusBar style="auto" />
         </QueryClientProvider>

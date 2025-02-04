@@ -17,9 +17,15 @@ export default function Comment({
     <View style={styles.commentContainer}>
       <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
       <View style={styles.commentContent}>
-        <Text style={styles.username}>{username}</Text>
-        <Text style={styles.commentText}>{comment}</Text>
-        <Text style={styles.timestamp}>{timestamp}</Text>
+        <Text className="text-white" style={styles.username}>
+          {username}
+        </Text>
+        <Text className="text-white" style={styles.commentText}>
+          {comment}
+        </Text>
+        <Text className="text-white" style={styles.timestamp}>
+          {timestamp}
+        </Text>
       </View>
     </View>
   );

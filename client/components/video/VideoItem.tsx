@@ -6,12 +6,14 @@ import {
   StyleSheet,
   Text,
   ViewToken,
+  TouchableOpacity,
 } from "react-native";
 import { Button } from "~/components/ui/button";
 import { Heart, MessageCircle, Share2, User2 } from "lucide-react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useVideoStore } from "./useVideoStore";
+import { useRouter } from "expo-router";
 
 interface Video {
   id: string;
@@ -39,6 +41,7 @@ const videoSources: Video[] = [
 
 export function VideoFeed() {
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const router = useRouter();
 
   const onViewableItemsChanged = useCallback(
     ({ changed }: { changed: ViewToken[] }) => {
@@ -78,7 +81,8 @@ interface VideoItemProps {
 }
 
 function VideoItem({ video, isActive }: VideoItemProps) {
-  const { isCommentsVisible, setIsCommentsVisible } = useVideoStore();
+  const router = useRouter();
+  const { setIsCommentsVisible } = useVideoStore();
   const player = useVideoPlayer(video.url, (player) => {
     player.loop = true;
     if (isActive) {
@@ -106,12 +110,23 @@ function VideoItem({ video, isActive }: VideoItemProps) {
 
         {/* Interaction buttons */}
         <View style={styles.buttonContainer}>
-          <Avatar alt="Zach Nugent's Avatar">
-            <AvatarImage source={{ uri: "" }} />
-            <AvatarFallback>
-              <Text>ZN</Text>
-            </AvatarFallback>
-          </Avatar>
+          <TouchableOpacity
+            onPress={() => {
+              console.log("yo");
+              router.push({
+                pathname: "/(modals)/viewprofile/[id]",
+                params: { id: "1" },
+              });
+            }}
+            className="items-center" // To keep the Profile text aligned with avatar
+          >
+            <Avatar alt="Zach Nugent's Avatar">
+              <AvatarImage source={{ uri: "" }} />
+              <AvatarFallback>
+                <Text>ZN</Text>
+              </AvatarFallback>
+            </Avatar>
+          </TouchableOpacity>
           <Text className="text-white">Profile</Text>
           <Button variant="default" size="icon" className="bg-transparent">
             <Heart className="h-7 w-7 text-white" />
