@@ -20,6 +20,8 @@ import { Session } from "@supabase/supabase-js";
 import Auth from "@/components/auth/Auth";
 import { View } from "react-native";
 import { NAV_THEME } from "~/lib/constants";
+import { useSessionStore } from "@/hooks/useSession";
+import { APP_URL } from "../constants/app";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,7 +37,7 @@ const DARK_THEME: Theme = {
 };
 
 export default function RootLayout() {
-  const [session, setSession] = useState<Session | null>(null);
+  const { session, setSession } = useSessionStore();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -59,15 +61,15 @@ export default function RootLayout() {
     trpc.createClient({
       links: [
         httpBatchLink({
-          url: "https://6a6a-69-212-112-109.ngrok-free.app/trpc",
-          // headers: async () => {
-          //   const {
-          //     data: { session },
-          //   } = await supabase.auth.getSession();
-          //   return {
-          //     Authorization: session ? `Bearer ${session.access_token}` : "",
-          //   };
-          // },
+          url: APP_URL + "/trpc",
+          headers: async () => {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            return {
+              Authorization: session ? `Bearer ${session.access_token}` : "",
+            };
+          },
         }),
       ],
       transformer: superjson,

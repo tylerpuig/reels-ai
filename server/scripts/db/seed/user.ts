@@ -1,5 +1,5 @@
-import { db } from "../utils";
-import * as schema from "../../../db/schema";
+import { db } from "../utils.js";
+import * as schema from "../../../db/schema.js";
 import { faker } from "@faker-js/faker";
 
 export async function seedUser() {

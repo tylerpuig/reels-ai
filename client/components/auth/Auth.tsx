@@ -2,11 +2,36 @@ import React, { useState } from "react";
 import { Alert, StyleSheet, View, Text } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { Button, Input } from "@rneui/themed";
+import { trpc } from "../../trpc/client";
+import { useSessionStore } from "@/hooks/useSession";
+import { APP_URL } from "../../constants/app";
+import { type Session } from "@supabase/supabase-js";
 
 export default function Auth() {
+  const { setSession } = useSessionStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  async function createNewUser(session: Session) {
+    try {
+      if (!session?.user?.id) return;
+      console.log(session);
+      await fetch(`${APP_URL}/newUser`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: session?.user?.id,
+          name: "name",
+          email: session?.user?.email,
+        }),
+      });
+    } catch (err) {}
+  }
+
+  // const createNewUser = trpc.user.newUser.useMutation();
 
   async function signInWithEmail() {
     setLoading(true);
@@ -31,6 +56,9 @@ export default function Auth() {
       });
 
       if (error) Alert.alert(error.message);
+      if (!session?.user?.id) return;
+      setSession(session);
+      await createNewUser(session);
     } catch (_) {
     } finally {
       setLoading(false);
