@@ -1,7 +1,7 @@
 import { initTRPC } from "@trpc/server";
-import { createTRPCRouter } from "../trpc";
+import { createTRPCRouter } from "../trpc.js";
 import { z } from "zod";
-import { protectedProcedure } from "../trpc";
+import { protectedProcedure } from "../trpc.js";
 
 // const t = initTRPC.create();
 // export const router = t.router;
