@@ -9,53 +9,69 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Button } from "~/components/ui/button";
-import { Heart, MessageCircle, Share2, House } from "lucide-react-native";
-import { useVideoPlayer, VideoView } from "expo-video";
+import {
+  Play,
+  Pause,
+  Heart,
+  MessageCircle,
+  Share2,
+  House,
+} from "lucide-react-native";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useVideoStore } from "./useVideoStore";
 import { useRouter } from "expo-router";
+import { FeedToggle } from "./FeedToggle";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Video as ExpoVideo, ResizeMode } from "expo-av";
 
 interface Video {
   id: string;
-  url: string;
+  url: number;
   username: string;
   description: string;
 }
 
 const { width, height } = Dimensions.get("window");
+console.log(width, height);
+const TAB_BAR_HEIGHT = 49;
 
 const videoSources: Video[] = [
   {
     id: "1",
-    url: "https://www.youtube.com/shorts/weg6aryt7pY?feature=share",
-    username: "BigBuckBunny",
-    description: "A large rabbit fights back against bullies in a forest.",
+    url: require("../../videos/ny_video.mp4"),
+    username: "New York Penthouse",
+    description: "New York Penthouse",
   },
   {
     id: "2",
-    url: "https://media.w3.org/2010/05/sintel/trailer.mp4",
+    url: require("../../videos/most_expensive_il.mp4"),
     username: "Sintel",
-    description: "A girl searches for a baby dragon she befriended.",
+    description: "Most expensive house in Illinois",
+  },
+  {
+    id: "3",
+    url: require("../../videos/penhoust_palace_chi.mp4"),
+    username: "Penhoust Palace",
+    description: "Huge Penhouse Palace in Chicago",
+  },
+  {
+    id: "4",
+    url: require("../../videos/penhoust_palace_chi.mp4"),
+    username: "Penhoust Palace",
+    description: "Huge Penhouse Palace in Chicago",
+  },
+  {
+    id: "5",
+    url: require("../../videos/penhoust_palace_chi.mp4"),
+    username: "Penhoust Palace",
+    description: "Huge Penhouse Palace in Chicago",
   },
 ];
 
-function FeedToggle() {
-  return (
-    <View className="absolute top-14 left-0 right-0 z-50 flex-row justify-center">
-      <View className="flex-row bg-black/50 rounded-full p-1.5">
-        <TouchableOpacity className="px-6 py-1.5 bg-white rounded-full">
-          <Text className="text-black font-semibold">For You</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="px-6 py-1.5">
-          <Text className="text-white font-semibold">Following</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
-
 export function VideoFeed() {
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const insets = useSafeAreaInsets();
+  const containerHeight = height - TAB_BAR_HEIGHT - insets.top;
 
   const onViewableItemsChanged = useCallback(
     ({ changed }: { changed: ViewToken[] }) => {
@@ -79,7 +95,7 @@ export function VideoFeed() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         pagingEnabled
-        snapToInterval={height}
+        snapToInterval={containerHeight}
         snapToAlignment="start"
         decelerationRate="fast"
         showsVerticalScrollIndicator={false}
@@ -97,35 +113,135 @@ interface VideoItemProps {
   isActive: boolean;
 }
 
-function VideoItem({ video, isActive }: VideoItemProps) {
+function VideoItem({ video }: VideoItemProps) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const videoRef = React.useRef<ExpoVideo>(null);
+  const [status, setStatus] = React.useState({});
   const { setIsCommentsVisible } = useVideoStore();
-  const player = useVideoPlayer(video.url, (player) => {
-    player.loop = true;
-    if (isActive) {
-      player.play();
-    } else {
-      player.pause();
+  const [isPaused, setIsPaused] = useState(false);
+  const [showPlayButton, setShowPlayButton] = useState(false);
+
+  React.useEffect(() => {
+    if (videoRef.current) {
+      if (!isPaused) {
+        videoRef.current.playAsync();
+      } else {
+        videoRef.current.pauseAsync();
+      }
     }
+  }, [isPaused]);
+
+  // React.useEffect(() => {
+  //   setIsPaused(false);
+  // }, [video]);
+
+  const handleVideoPress = async () => {
+    setIsPaused(!isPaused);
+    setShowPlayButton(true);
+    // Hide the play/pause button after 2 seconds
+    setShowPlayButton(false);
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      width: width,
+      height: height - TAB_BAR_HEIGHT - insets.top,
+      backgroundColor: "black",
+    },
+    video: {
+      ...StyleSheet.absoluteFillObject,
+      width: "100%",
+      height: "100%",
+    },
+    overlayContainer: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: "space-between",
+      flexDirection: "row",
+      padding: 20,
+    },
+    textContainer: {
+      flex: 1,
+      justifyContent: "flex-end",
+      paddingRight: 80,
+      paddingBottom: 40,
+    },
+    buttonContainer: {
+      position: "absolute",
+      right: 16,
+      bottom: 120,
+      alignItems: "center",
+      gap: 16,
+      zIndex: 10,
+    },
+    username: {
+      color: "white",
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 8,
+    },
+    description: {
+      color: "white",
+      fontSize: 14,
+    },
+    buttonText: {
+      color: "white",
+      fontSize: 12,
+      marginTop: 4,
+    },
+    playButtonContainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 5,
+    },
+    playButton: {
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      padding: 20,
+      borderRadius: 50,
+    },
   });
 
   return (
     <View style={styles.container}>
-      <VideoView
-        style={styles.video}
-        player={player}
-        allowsFullscreen
-        allowsPictureInPicture
-      />
-      {/* Container for overlays */}
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={handleVideoPress}
+        style={StyleSheet.absoluteFill}
+      >
+        <ExpoVideo
+          ref={videoRef}
+          style={styles.video}
+          source={video.url}
+          resizeMode={ResizeMode.COVER}
+          isLooping
+          shouldPlay={true}
+          // shouldPlay={true}
+          onPlaybackStatusUpdate={(status) => setStatus(status)}
+        />
+      </TouchableOpacity>
+
+      {showPlayButton && (
+        <View style={styles.playButtonContainer}>
+          <View style={styles.playButton}>
+            {isPaused ? (
+              <Play color="white" size={48} />
+            ) : (
+              <Pause color="white" size={48} />
+            )}
+          </View>
+        </View>
+      )}
       <View style={styles.overlayContainer}>
-        {/* Text container */}
         <View style={styles.textContainer}>
           <Text style={styles.username}>{video.username}</Text>
           <Text style={styles.description}>{video.description}</Text>
         </View>
 
-        {/* Interaction buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={() => {
@@ -134,7 +250,7 @@ function VideoItem({ video, isActive }: VideoItemProps) {
                 params: { id: "1" },
               });
             }}
-            className="items-center" // To keep the Profile text aligned with avatar
+            style={{ alignItems: "center" }}
           >
             <Avatar alt="Zach Nugent's Avatar">
               <AvatarImage source={{ uri: "" }} />
@@ -142,23 +258,30 @@ function VideoItem({ video, isActive }: VideoItemProps) {
                 <Text>ZN</Text>
               </AvatarFallback>
             </Avatar>
+            <Text style={styles.buttonText}>Profile</Text>
           </TouchableOpacity>
-          <Text className="text-white">Profile</Text>
-          <Button variant="default" size="icon" className="bg-transparent">
-            <Heart className="h-7 w-7 text-white" />
-          </Button>
-          <Text className="text-white">103k</Text>
-          <Button
-            onPress={() => {
-              setIsCommentsVisible(true);
-            }}
-            variant="default"
-            size="icon"
-            className="bg-transparent"
-          >
-            <MessageCircle className="h-7 w-7 text-white" />
-          </Button>
-          <Text className="text-white">826</Text>
+
+          <View style={{ alignItems: "center" }}>
+            <Button variant="default" size="icon" className="bg-transparent">
+              <Heart className="h-7 w-7 text-white" />
+            </Button>
+            <Text style={styles.buttonText}>103k</Text>
+          </View>
+
+          <View style={{ alignItems: "center" }}>
+            <Button
+              onPress={() => {
+                setIsCommentsVisible(true);
+              }}
+              variant="default"
+              size="icon"
+              className="bg-transparent"
+            >
+              <MessageCircle className="h-7 w-7 text-white" />
+            </Button>
+            <Text style={styles.buttonText}>826</Text>
+          </View>
+
           <Button
             onPress={() => {
               router.push({
@@ -172,6 +295,7 @@ function VideoItem({ video, isActive }: VideoItemProps) {
           >
             <Share2 className="h-7 w-7 text-white" />
           </Button>
+
           <Button
             onPress={() => {
               router.push({
@@ -190,42 +314,3 @@ function VideoItem({ video, isActive }: VideoItemProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    top: -100,
-    width: width,
-    height: height - 100,
-    backgroundColor: "black",
-  },
-  video: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  overlayContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "flex-end",
-  },
-  textContainer: {
-    position: "absolute",
-    bottom: 100,
-    left: 0,
-    padding: 16,
-    width: "80%",
-  },
-  username: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  description: {
-    color: "white",
-    fontSize: 14,
-  },
-  buttonContainer: {
-    position: "absolute",
-    right: 8,
-    bottom: 120,
-    alignItems: "center",
-  },
-});
