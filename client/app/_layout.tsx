@@ -1,30 +1,29 @@
+// app/_layout.tsx
 import "../global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "../trpc";
 import superjson from "superjson";
 import {
-  type Theme,
+  Theme,
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import "react-native-reanimated";
+import { supabase } from "~/lib/supabase";
+import { Session } from "@supabase/supabase-js";
+import Auth from "@/components/auth/Auth";
+import { View } from "react-native";
 import { NAV_THEME } from "~/lib/constants";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+export { ErrorBoundary } from "expo-router";
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -36,13 +35,20 @@ const DARK_THEME: Theme = {
 };
 
 export default function RootLayout() {
-  // const colorScheme = useColorScheme();
-
+  const [session, setSession] = useState<Session | null>(null);
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
     if (loaded) {
       SplashScreen.hideAsync();
     }
@@ -54,16 +60,36 @@ export default function RootLayout() {
       links: [
         httpBatchLink({
           url: "http://10.10.1.153:4130/trpc",
+          headers: async () => {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            return {
+              Authorization: session?.access_token ?? "",
+            };
+          },
         }),
       ],
       transformer: superjson,
     })
   );
 
-  if (!loaded) {
-    return null;
+  if (!loaded) return null;
+
+  // If no session, show auth screen
+  if (!session) {
+    return (
+      <ThemeProvider value={DARK_THEME}>
+        <View style={{ flex: 1 }}>
+          <Auth />
+        </View>
+      </ThemeProvider>
+    );
   }
 
+  console.log(session);
+
+  // Otherwise show main app
   return (
     <ThemeProvider value={DARK_THEME}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
