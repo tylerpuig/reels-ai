@@ -78,9 +78,9 @@ export const videosTable = pgTable(
     userId: integer("user_id")
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
-    listingId: integer("listing_id").references(() => listingsTable.id, {
-      onDelete: "cascade",
-    }),
+    // listingId: integer("listing_id").references(() => listingsTable.id, {
+    //   onDelete: "cascade",
+    // }),
     title: varchar("title", { length: 255 }).notNull(),
     description: text("description"),
     videoUrl: varchar("video_url", { length: 255 }).notNull(),
@@ -95,7 +95,7 @@ export const videosTable = pgTable(
   },
   (videos) => [
     index("video_user_idx").on(videos.userId),
-    index("video_listing_idx").on(videos.listingId),
+    // index("video_listing_idx").on(videos.listingId),
     index("video_embedding_idx").using(
       "hnsw",
       videos.embedding.op("vector_cosine_ops")
