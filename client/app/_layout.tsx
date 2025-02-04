@@ -82,6 +82,17 @@ export default function RootLayout() {
                 gestureDirection: "horizontal",
               }}
             />
+            <Stack.Screen
+              name="(modals)/listing/[id]"
+              options={{
+                headerShown: false,
+                title: "View Listing",
+                presentation: "card",
+                animation: "slide_from_right",
+                gestureEnabled: true,
+                gestureDirection: "horizontal",
+              }}
+            />
           </Stack>
           <StatusBar style="auto" />
         </QueryClientProvider>

@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Button } from "~/components/ui/button";
-import { Heart, MessageCircle, Share2, User2 } from "lucide-react-native";
+import { Heart, MessageCircle, Share2, House } from "lucide-react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useVideoStore } from "./useVideoStore";
@@ -112,7 +112,6 @@ function VideoItem({ video, isActive }: VideoItemProps) {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={() => {
-              console.log("yo");
               router.push({
                 pathname: "/(modals)/viewprofile/[id]",
                 params: { id: "1" },
@@ -143,8 +142,31 @@ function VideoItem({ video, isActive }: VideoItemProps) {
             <MessageCircle className="h-7 w-7 text-white" />
           </Button>
           <Text className="text-white">826</Text>
-          <Button variant="default" size="icon" className="bg-transparent">
+          <Button
+            onPress={() => {
+              router.push({
+                pathname: "/(modals)/listing/[id]",
+                params: { id: "1" },
+              });
+            }}
+            variant="default"
+            size="icon"
+            className="bg-transparent"
+          >
             <Share2 className="h-7 w-7 text-white" />
+          </Button>
+          <Button
+            onPress={() => {
+              router.push({
+                pathname: "/(modals)/listing/[id]",
+                params: { id: "1" },
+              });
+            }}
+            variant="default"
+            size="icon"
+            className="bg-transparent"
+          >
+            <House className="h-7 w-7 text-white" />
           </Button>
         </View>
       </View>
