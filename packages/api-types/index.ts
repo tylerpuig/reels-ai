@@ -4,5 +4,3 @@ import type { AppRouter } from "../../server/api/root"; // Only importing the ty
 
 // Export only types, no actual implementation
 export type { AppRouter };
-// export type RouterInputs = inferRouterInputs<AppRouter>;
-// export type RouterOutputs = inferRouterOutputs<AppRouter>;
