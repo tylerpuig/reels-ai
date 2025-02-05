@@ -27,6 +27,9 @@ export function VideoScroll() {
     if (isCommentsVisible) {
       toggleIsCommentsVisible();
     }
+    if (isShareModalVisible) {
+      setIsShareModalVisible(false);
+    }
   };
 
   return (
@@ -42,11 +45,15 @@ export function VideoScroll() {
 
       {/* Animated Comments Section */}
       <CommentSection />
-      <ShareModal
-        contentUrl={currentVideo?.videoUrl ?? ""}
-        visible={isShareModalVisible}
-        onClose={() => setIsShareModalVisible(false)}
-      />
+      {isShareModalVisible && (
+        <View style={styles.modalWrapper}>
+          <ShareModal
+            contentUrl={currentVideo?.videoUrl ?? ""}
+            visible={isShareModalVisible}
+            onClose={() => setIsShareModalVisible(false)}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -88,5 +95,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     zIndex: 999,
     elevation: 999,
+  },
+  modalWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
   },
 });

@@ -10,6 +10,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import { useVideoStore } from "../useVideoStore";
@@ -19,7 +20,7 @@ import { useSessionStore } from "@/hooks/useSession";
 import { useVideoContext } from "@/hooks/useVideoContext";
 
 const { height } = Dimensions.get("window");
-const COMMENT_SECTION_HEIGHT = height * 0.8;
+const COMMENT_SECTION_HEIGHT = height * 0.6;
 
 export default function CommentSection() {
   const {
@@ -33,11 +34,26 @@ export default function CommentSection() {
   const [newComment, setNewComment] = useState("");
   const slideAnim = useRef(new Animated.Value(COMMENT_SECTION_HEIGHT)).current;
   const panY = useRef(new Animated.Value(0)).current;
+  const [keyboardPadding, setKeyboardPadding] = useState(70);
 
   const { data: comments, refetch: refetchComments } =
     trpc.videos.getvideoComments.useQuery({
       videoId: activeVideoId,
     });
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener("keyboardWillShow", () => {
+      setKeyboardPadding(280);
+    });
+    const hideSubscription = Keyboard.addListener("keyboardWillHide", () => {
+      setKeyboardPadding(70);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const addCommentMutation = trpc.videos.createComment.useMutation({
     onSuccess: () => {
@@ -114,6 +130,105 @@ export default function CommentSection() {
   }, [isCommentsVisible]);
 
   if (!isCommentsVisible) return null;
+
+  const styles = StyleSheet.create({
+    keyboardView: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: COMMENT_SECTION_HEIGHT,
+    },
+    container: {
+      flex: 1,
+      position: "relative",
+      paddingHorizontal: 15,
+    },
+    commentsList: {
+      paddingBottom: 20,
+    },
+    commentsSectionContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: COMMENT_SECTION_HEIGHT,
+      backgroundColor: "#000",
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      overflow: "hidden",
+      zIndex: 999,
+      elevation: 999,
+    },
+    commentHeader: {
+      padding: 10,
+      alignItems: "center",
+      borderBottomWidth: 1,
+      borderBottomColor: "#333",
+    },
+    pullBar: {
+      width: 40,
+      height: 4,
+      backgroundColor: "#666",
+      borderRadius: 2,
+      marginBottom: 10,
+    },
+    closeButton: {
+      color: "#fff",
+      fontSize: 14,
+    },
+    title: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
+      marginVertical: 10,
+    },
+    inputWrapper: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: "#000",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      paddingBottom: keyboardPadding,
+      backgroundColor: "#000",
+      borderTopWidth: 1,
+      borderTopColor: "#333",
+    },
+    input: {
+      flex: 1,
+      backgroundColor: "#1a1a1a",
+      borderRadius: 20,
+      paddingHorizontal: 15,
+      paddingVertical: 8,
+      color: "#fff",
+      fontSize: 14,
+      maxHeight: 100,
+      marginRight: 10,
+    },
+    sendButton: {
+      paddingHorizontal: 15,
+      paddingVertical: 8,
+      backgroundColor: "#007AFF",
+      borderRadius: 20,
+    },
+    sendButtonDisabled: {
+      backgroundColor: "#1a1a1a",
+    },
+    sendButtonText: {
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    sendButtonTextDisabled: {
+      color: "#666",
+    },
+  });
 
   return (
     <KeyboardAvoidingView
@@ -195,102 +310,3 @@ export default function CommentSection() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  keyboardView: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: COMMENT_SECTION_HEIGHT,
-  },
-  container: {
-    flex: 1,
-    position: "relative",
-    paddingHorizontal: 15,
-  },
-  commentsList: {
-    paddingBottom: 20, // Add extra padding for input
-  },
-  commentsSectionContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: COMMENT_SECTION_HEIGHT,
-    backgroundColor: "#000",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: "hidden",
-    zIndex: 999,
-    elevation: 999,
-  },
-  commentHeader: {
-    padding: 10,
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
-  },
-  pullBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: "#666",
-    borderRadius: 2,
-    marginBottom: 10,
-  },
-  closeButton: {
-    color: "#fff",
-    fontSize: 14,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginVertical: 10,
-  },
-  inputWrapper: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#000",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    paddingBottom: 240,
-    backgroundColor: "#000",
-    borderTopWidth: 1,
-    borderTopColor: "#333",
-  },
-  input: {
-    flex: 1,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    color: "#fff",
-    fontSize: 14,
-    maxHeight: 100,
-    marginRight: 10,
-  },
-  sendButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    backgroundColor: "#007AFF",
-    borderRadius: 20,
-  },
-  sendButtonDisabled: {
-    backgroundColor: "#1a1a1a",
-  },
-  sendButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  sendButtonTextDisabled: {
-    color: "#666",
-  },
-});

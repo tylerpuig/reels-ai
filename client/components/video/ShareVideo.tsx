@@ -10,7 +10,6 @@ import {
   Dimensions,
   Animated,
   PanResponder,
-  KeyboardAvoidingView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -130,132 +129,98 @@ export default function ShareModal({
   if (!visible) return null;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.keyboardView}
-    >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
-        <Animated.View
-          style={[
-            styles.modalContent,
+    <Animated.View
+      style={[
+        styles.modalContainer,
+        {
+          transform: [
             {
-              transform: [
-                {
-                  translateY: Animated.add(slideAnim, panY),
-                },
-              ],
+              translateY: Animated.add(slideAnim, panY),
             },
-          ]}
-        >
-          <View
-            {...headerPanResponder.panHandlers}
-            style={styles.headerContainer}
-          >
-            <View style={styles.pullBar} />
-            <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeButton}>Close</Text>
-            </TouchableOpacity>
-          </View>
+          ],
+        },
+      ]}
+    >
+      <View {...headerPanResponder.panHandlers} style={styles.headerContainer}>
+        <View style={styles.pullBar} />
+        <TouchableOpacity onPress={onClose}>
+          <Text style={styles.closeButton}>Close</Text>
+        </TouchableOpacity>
+      </View>
 
-          <View style={styles.container}>
-            <View style={styles.shareGrid}>
-              <ShareButton
-                icon="link"
-                label="Copy link"
-                color="#4B6BFB"
-                onPress={() => handleShare("copyLink")}
-              />
-              <ShareButton
-                icon="logo-whatsapp"
-                label="WhatsApp"
-                color="#25D366"
-                onPress={() => handleShare("whatsapp")}
-              />
-              <ShareButton
-                icon="stats-chart"
-                label="Status"
-                color="#25D366"
-                onPress={() => handleShare("whatsapp")}
-              />
-              <ShareButton
-                icon="logo-instagram"
-                label="Instagram"
-                color="#E4405F"
-                onPress={() => handleShare("instagram")}
-              />
-              <ShareButton
-                icon="logo-tiktok"
-                label="TikTok"
-                color="#000000"
-                onPress={() => handleShare("tiktok")}
-              />
-              <ShareButton
-                icon="chatbubbles"
-                label="Messages"
-                color="#007AFF"
-                onPress={() => handleShare("sms")}
-              />
-            </View>
+      <View style={styles.container}>
+        <View style={styles.shareGrid}>
+          <ShareButton
+            icon="link"
+            label="Copy link"
+            color="#4B6BFB"
+            onPress={() => handleShare("copyLink")}
+          />
+          <ShareButton
+            icon="logo-whatsapp"
+            label="WhatsApp"
+            color="#25D366"
+            onPress={() => handleShare("whatsapp")}
+          />
+          <ShareButton
+            icon="stats-chart"
+            label="Status"
+            color="#25D366"
+            onPress={() => handleShare("whatsapp")}
+          />
+          <ShareButton
+            icon="logo-instagram"
+            label="Instagram"
+            color="#E4405F"
+            onPress={() => handleShare("instagram")}
+          />
+          <ShareButton
+            icon="logo-tiktok"
+            label="TikTok"
+            color="#000000"
+            onPress={() => handleShare("tiktok")}
+          />
+          <ShareButton
+            icon="chatbubbles"
+            label="Messages"
+            color="#007AFF"
+            onPress={() => handleShare("sms")}
+          />
+        </View>
 
-            <View style={styles.actionGrid}>
-              <ShareButton
-                icon="flag"
-                label="Report"
-                color="#666666"
-                onPress={onClose}
-              />
-              <ShareButton
-                icon="heart-dislike"
-                label="Not interested"
-                color="#666666"
-                onPress={onClose}
-              />
-              <ShareButton
-                icon="download"
-                label="Save video"
-                color="#666666"
-                onPress={onClose}
-              />
-              <ShareButton
-                icon="closed-captioning"
-                label="Turn off captions"
-                color="#666666"
-                onPress={onClose}
-              />
-            </View>
-          </View>
-        </Animated.View>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+        <View style={styles.actionGrid}>
+          <ShareButton
+            icon="flag"
+            label="Report"
+            color="#666666"
+            onPress={onClose}
+          />
+          <ShareButton
+            icon="heart-dislike"
+            label="Not interested"
+            color="#666666"
+            onPress={onClose}
+          />
+          <ShareButton
+            icon="download"
+            label="Save video"
+            color="#666666"
+            onPress={onClose}
+          />
+          <ShareButton
+            icon="closed-captioning"
+            label="Turn off captions"
+            color="#666666"
+            onPress={onClose}
+          />
+        </View>
+      </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardView: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: MODAL_HEIGHT,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 15,
-  },
-  modalOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
+  modalContainer: {
     position: "absolute",
     bottom: 0,
     left: 0,
@@ -267,6 +232,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     zIndex: 999,
     elevation: 999,
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 15,
   },
   headerContainer: {
     padding: 10,

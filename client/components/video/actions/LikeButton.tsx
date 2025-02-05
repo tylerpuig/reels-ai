@@ -91,9 +91,9 @@ export default function LikeButton({
         >
           <Heart
             size={28}
-            color="white"
+            color={videoState?.hasLiked ? "red" : "white"}
             strokeWidth={2}
-            fill={videoState?.hasLiked ? "#3b82f6" : "transparent"}
+            fill={videoState?.hasLiked ? "red" : "transparent"}
           />
         </Button>
       </Animated.View>
