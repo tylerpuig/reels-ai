@@ -6,6 +6,8 @@ import cors from "cors";
 import * as schema from "./db/schema.js";
 import { db } from "./db/index.js";
 import { faker } from "@faker-js/faker";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(

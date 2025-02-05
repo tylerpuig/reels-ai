@@ -7,15 +7,14 @@ import {
   Text,
   StyleSheet,
   Dimensions,
-  //   Svg,
-  //   Circle,
 } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import VideoPreview from "../../components/video/recording/VideoPreview";
-
-const { width, height } = Dimensions.get("window");
+import { trpc } from "../../trpc/client";
+import { useSessionStore } from "@/hooks/useSession";
 
 export default function SnapchatCamera() {
+  const { session } = useSessionStore();
   const [facing, setFacing] = useState<CameraType>("back");
   const [isRecording, setIsRecording] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -32,10 +31,48 @@ export default function SnapchatCamera() {
     setRecordedVideo(null);
   };
 
+  const getUploadUrl = trpc.videos.getVideoUploadUrl.useMutation();
+  const newVideoEntry = trpc.videos.newVideoEntry.useMutation();
+
   const handleConfirm = async () => {
     // Here you would typically upload the video
     console.log("Uploading video:", recordedVideo);
     try {
+      if (!recordedVideo) return;
+
+      // Determine content type based on file extension
+      const isMovFile = recordedVideo.toLowerCase().endsWith(".mov");
+      const contentType = isMovFile ? "video/quicktime" : "video/mp4";
+
+      const result = await getUploadUrl.mutateAsync({
+        videoFilename: `video-${
+          isMovFile ? Date.now() + ".mov" : Date.now() + ".mp4"
+        }`,
+      });
+
+      if (!result?.uploadUrl) {
+        console.error("No upload URL received");
+        return;
+      }
+
+      const response = await fetch(recordedVideo);
+      const blob = await response.blob();
+
+      console.log("Starting upload with content type:", contentType);
+      const uploadResponse = await fetch(result.uploadUrl, {
+        method: "PUT",
+        body: blob,
+        headers: {
+          "Content-Type": contentType,
+        },
+      });
+
+      await newVideoEntry.mutateAsync({
+        fileName: `video-${Date.now()}.mp4`,
+        url: result.fileUrl,
+        userId: session?.user?.id ?? "",
+      });
+
       // Add your upload logic here
       // After successful upload:
       setRecordedVideo(null);
@@ -66,8 +103,9 @@ export default function SnapchatCamera() {
       }, 100);
 
       const video = await videoRecordPromise;
-      console.log("Video recorded:", video?.uri ?? "");
-      setRecordedVideo(video?.uri ?? null);
+      if (video?.uri) {
+        setRecordedVideo(video.uri);
+      }
     } catch (error) {
       console.error("Failed to record video:", error);
     }
