@@ -100,4 +100,48 @@ export const videosRouter = createTRPCRouter({
       });
       return video;
     }),
+  getvideoComments: protectedProcedure
+    .input(
+      z.object({
+        videoId: z.number(),
+      })
+    )
+    .query(async ({ input }) => {
+      // Fetch single video with pagination
+      const comments = await db
+        .select()
+        .from(schema.commentsTable)
+        .where(eq(schema.commentsTable.videoId, input.videoId))
+        .leftJoin(
+          schema.usersTable,
+          eq(schema.commentsTable.userId, schema.usersTable.id)
+        );
+      return comments;
+    }),
+  createComment: protectedProcedure
+    .input(
+      z.object({
+        videoId: z.number(),
+        content: z.string(),
+        userId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        await db.insert(schema.commentsTable).values([
+          {
+            videoId: input.videoId,
+            userId: input.userId,
+            content: input.content,
+          },
+        ]);
+
+        await db
+          .update(schema.videosTable)
+          .set({ commentCount: sql`${schema.videosTable.commentCount} + 1` })
+          .where(eq(schema.videosTable.id, input.videoId));
+      } catch (error) {
+        console.log(error);
+      }
+    }),
 });

@@ -26,6 +26,7 @@ import { Video as ExpoVideo, ResizeMode } from "expo-av";
 import { type VideoData } from "~/trpc/types";
 import { trpc } from "@/trpc/client";
 import LikeButton from "./actions/LikeButton";
+import VideoComments from "./actions/VideoComments";
 import { useSessionStore } from "@/hooks/useSession";
 
 const { width, height } = Dimensions.get("window");
@@ -38,19 +39,29 @@ export function VideoFeed() {
   const containerHeight = height - TAB_BAR_HEIGHT - insets.top;
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
 
-  const { data: videos } = trpc.videos.getVideos.useQuery({
-    skip: videoPaginationSkip,
-    userId: session?.user?.id ?? "",
-  });
-
-  const onViewableItemsChanged = ({ changed }: { changed: ViewToken[] }) => {
-    const changedItem = changed[0];
-    console.log(changedItem?.index);
-    setSelectedVideoIndex(changedItem?.index ?? 0);
-    if (videos?.[changedItem?.index ?? 0]) {
-      setSelectedVideo(videos?.[changedItem?.index ?? 0]);
+  const { data: videos } = trpc.videos.getVideos.useQuery(
+    {
+      skip: videoPaginationSkip,
+      userId: session?.user?.id ?? "",
+    },
+    {
+      staleTime: 0,
+      cacheTime: 0,
     }
-  };
+  );
+
+  const onViewableItemsChanged = useCallback(
+    ({ changed }: { changed: ViewToken[] }) => {
+      const changedItem = changed[0];
+      setSelectedVideoIndex(changedItem?.index ?? 0);
+
+      // Update selected video whenever videos data changes
+      if (videos?.[changedItem?.index ?? 0]) {
+        setSelectedVideo(videos[changedItem?.index ?? 0]);
+      }
+    },
+    [videos, setSelectedVideo]
+  );
 
   const renderItem = ({ item, index }: { item: VideoData; index: number }) => {
     return <VideoItem video={item} isActive={selectedVideoIndex === index} />;
@@ -90,7 +101,6 @@ function VideoItem({ video, isActive }: VideoItemProps) {
   const { setIsCommentsVisible } = useVideoStore();
   const [isPaused, setIsPaused] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(false);
-  const { setSelectedVideo, selectedVideo } = useVideoStore();
 
   React.useEffect(() => {
     if (videoRef.current && isActive) {
@@ -233,23 +243,9 @@ function VideoItem({ video, isActive }: VideoItemProps) {
             </Avatar>
             <Text style={styles.buttonText}>Profile</Text>
           </TouchableOpacity>
-
           <LikeButton video={video} />
 
-          <View style={{ alignItems: "center" }}>
-            <Button
-              onPress={() => {
-                setIsCommentsVisible(true);
-              }}
-              variant="default"
-              size="icon"
-              className="bg-transparent"
-            >
-              <MessageCircle className="h-7 w-7 text-white" />
-            </Button>
-            <Text style={styles.buttonText}>{video.commentCount}</Text>
-          </View>
-
+          <VideoComments video={video} />
           <Button
             onPress={() => {
               router.push({
@@ -263,7 +259,6 @@ function VideoItem({ video, isActive }: VideoItemProps) {
           >
             <Share2 className="h-7 w-7 text-white" />
           </Button>
-
           <Button
             onPress={() => {
               router.push({

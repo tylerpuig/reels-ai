@@ -6,7 +6,6 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-black">
       <VideoScroll />
-      {/* <VideoFeed2 /> */}
     </SafeAreaView>
   );
 }
