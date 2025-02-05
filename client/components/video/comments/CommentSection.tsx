@@ -7,23 +7,70 @@ import {
   Dimensions,
   PanResponder,
   FlatList,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import { useVideoStore } from "../useVideoStore";
 import Comment from "./Comment";
+import { trpc } from "../../../trpc/client";
+import { useSessionStore } from "@/hooks/useSession";
 
 const { height } = Dimensions.get("window");
 const COMMENT_SECTION_HEIGHT = height * 0.6;
 
 export default function CommentSection() {
-  const { isCommentsVisible, toggleIsCommentsVisible, setIsCommentsVisible } =
-    useVideoStore();
+  const {
+    isCommentsVisible,
+    toggleIsCommentsVisible,
+    setIsCommentsVisible,
+    activeVideoId,
+    videoPaginationSkip,
+  } = useVideoStore();
+  const { session } = useSessionStore();
+  const [newComment, setNewComment] = useState("");
   const slideAnim = useRef(new Animated.Value(COMMENT_SECTION_HEIGHT)).current;
   const panY = useRef(new Animated.Value(0)).current;
+
+  console.log(activeVideoId);
+
+  const { data: comments, refetch: refetchComments } =
+    trpc.videos.getvideoComments.useQuery({
+      videoId: activeVideoId,
+    });
+
+  const { refetch: refetchVideos } = trpc.videos.getVideos.useQuery(
+    {
+      skip: videoPaginationSkip,
+      userId: session?.user?.id ?? "",
+    },
+    {
+      enabled: false,
+    }
+  );
+
+  const addCommentMutation = trpc.videos.createComment.useMutation({
+    onSuccess: () => {
+      refetchComments();
+      setNewComment("");
+      refetchVideos();
+    },
+  });
+
+  const handleSubmitComment = () => {
+    if (!newComment.trim()) return;
+
+    addCommentMutation.mutate({
+      videoId: activeVideoId,
+      content: newComment.trim(),
+      userId: session?.user?.id ?? "",
+    });
+  };
+
   const headerPanResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Only handle vertical gestures
         return Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
       },
       onPanResponderMove: (_, gestureState) => {
@@ -32,7 +79,6 @@ export default function CommentSection() {
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 50) {
-          // SWIPE_THRESHOLD
           Animated.timing(slideAnim, {
             toValue: COMMENT_SECTION_HEIGHT,
             duration: 300,
@@ -72,54 +118,96 @@ export default function CommentSection() {
   if (!isCommentsVisible) return null;
 
   return (
-    <Animated.View
-      className="pb-10"
-      style={[
-        styles.commentsSectionContainer,
-        {
-          transform: [
-            {
-              translateY: Animated.add(slideAnim, panY),
-            },
-          ],
-        },
-      ]}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.keyboardView}
     >
-      <View {...headerPanResponder.panHandlers} style={styles.commentHeader}>
-        <View style={styles.pullBar} />
-        <TouchableOpacity onPress={toggleIsCommentsVisible}>
-          <Text style={styles.closeButton}>Close</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.container}>
-        <Text style={styles.title}>Comments</Text>
-        <FlatList
-          data={comments}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Comment
-              username={item.username}
-              profilePhoto={item.profilePhoto}
-              comment={item.comment}
-              timestamp={item.timestamp}
+      <Animated.View
+        style={[
+          styles.commentsSectionContainer,
+          {
+            transform: [
+              {
+                translateY: Animated.add(slideAnim, panY),
+              },
+            ],
+          },
+        ]}
+      >
+        <View {...headerPanResponder.panHandlers} style={styles.commentHeader}>
+          <View style={styles.pullBar} />
+          <TouchableOpacity onPress={toggleIsCommentsVisible}>
+            <Text style={styles.closeButton}>Close</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.container}>
+          <Text style={styles.title}>Comments</Text>
+          <FlatList
+            data={comments ?? []}
+            keyExtractor={(item) => item.comments.id.toString()}
+            renderItem={({ item }) => (
+              <Comment
+                username={item.users?.name ?? ""}
+                profilePhoto={item.users?.avatarUrl ?? ""}
+                comment={item.comments.content}
+                timestamp={item.comments.createdAt.toLocaleString()}
+              />
+            )}
+            showsVerticalScrollIndicator={true}
+            contentContainerStyle={styles.commentsList}
+          />
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={newComment}
+              onChangeText={setNewComment}
+              placeholder="Add a comment..."
+              placeholderTextColor="#666"
+              multiline
+              maxLength={500}
+              returnKeyType="send"
+              onSubmitEditing={handleSubmitComment}
             />
-          )}
-          showsVerticalScrollIndicator={true}
-          contentContainerStyle={styles.commentsList}
-        />
-      </View>
-    </Animated.View>
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                !newComment.trim() && styles.sendButtonDisabled,
+              ]}
+              onPress={handleSubmitComment}
+              disabled={!newComment.trim()}
+            >
+              <Text
+                style={[
+                  styles.sendButtonText,
+                  !newComment.trim() && styles.sendButtonTextDisabled,
+                ]}
+              >
+                Post
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Animated.View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardView: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: COMMENT_SECTION_HEIGHT,
+  },
   container: {
     flex: 1,
     position: "relative",
     paddingHorizontal: 15,
   },
   commentsList: {
-    paddingBottom: 20,
+    paddingBottom: 80, // Add extra padding for input
   },
   commentsSectionContainer: {
     position: "absolute",
@@ -157,77 +245,45 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginVertical: 10,
   },
+  inputContainer: {
+    position: "absolute",
+    bottom: 60,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "#000",
+    borderTopWidth: 1,
+    borderTopColor: "#333",
+  },
+  input: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    color: "#fff",
+    fontSize: 14,
+    maxHeight: 100,
+    marginRight: 10,
+  },
+  sendButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    backgroundColor: "#007AFF",
+    borderRadius: 20,
+  },
+  sendButtonDisabled: {
+    backgroundColor: "#1a1a1a",
+  },
+  sendButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  sendButtonTextDisabled: {
+    color: "#666",
+  },
 });
-
-const comments = [
-  {
-    id: "1",
-    username: "dance_queen",
-    profilePhoto: "https://randomuser.me/api/portraits/women/1.jpg",
-    comment: "This video is fire! 🔥🔥🔥",
-    timestamp: "2h ago",
-  },
-  {
-    id: "2",
-    username: "tech_ninja",
-    profilePhoto: "https://randomuser.me/api/portraits/men/2.jpg",
-    comment: "The editing on this is next level! Tutorial please? 🎬✨",
-    timestamp: "1h ago",
-  },
-  {
-    id: "3",
-    username: "wanderlust_soul",
-    profilePhoto: "https://randomuser.me/api/portraits/women/3.jpg",
-    comment: "This location looks amazing! Where was this filmed? 🌎",
-    timestamp: "45m ago",
-  },
-  {
-    id: "4",
-    username: "beat_master",
-    profilePhoto: "https://randomuser.me/api/portraits/men/4.jpg",
-    comment: "That transition at 0:15 was smooth af 🎵",
-    timestamp: "30m ago",
-  },
-  {
-    id: "5",
-    username: "creative_mind",
-    profilePhoto: "https://randomuser.me/api/portraits/women/5.jpg",
-    comment: "Your content keeps getting better and better! 📈",
-    timestamp: "20m ago",
-  },
-  {
-    id: "6",
-    username: "fitness_freak",
-    profilePhoto: "https://randomuser.me/api/portraits/men/6.jpg",
-    comment: "This inspired my workout today! 💪 Thanks for sharing",
-    timestamp: "15m ago",
-  },
-  {
-    id: "7",
-    username: "art_lover",
-    profilePhoto: "https://randomuser.me/api/portraits/women/7.jpg",
-    comment: "The colors in this video are absolutely stunning 🎨",
-    timestamp: "10m ago",
-  },
-  {
-    id: "8",
-    username: "music_junkie",
-    profilePhoto: "https://randomuser.me/api/portraits/men/8.jpg",
-    comment: "Song name? Need this on my playlist ASAP 🎧",
-    timestamp: "5m ago",
-  },
-  {
-    id: "9",
-    username: "positive_vibes",
-    profilePhoto: "https://randomuser.me/api/portraits/women/9.jpg",
-    comment: "This made my day! Keep spreading joy 🌟",
-    timestamp: "3m ago",
-  },
-  {
-    id: "10",
-    username: "comedy_king",
-    profilePhoto: "https://randomuser.me/api/portraits/men/10.jpg",
-    comment: "The way you did that part at the end 😂 Genius!",
-    timestamp: "1m ago",
-  },
-];
