@@ -3,6 +3,7 @@ import { Button } from "~/components/ui/button";
 import { MessageCircle } from "lucide-react-native";
 import { useVideoStore } from "../useVideoStore";
 import { type VideoData } from "../../../trpc/types";
+import { useVideoContext } from "@/hooks/useVideoContext";
 
 const styles = {
   buttonText: {
@@ -13,6 +14,7 @@ const styles = {
 };
 export default function VideoComments({ video }: { video: VideoData }) {
   const { setIsCommentsVisible, setActiveVideoId } = useVideoStore();
+  const { currentVideo } = useVideoContext();
   return (
     <View style={{ alignItems: "center" }}>
       <Button
@@ -24,9 +26,9 @@ export default function VideoComments({ video }: { video: VideoData }) {
         size="icon"
         className="bg-transparent"
       >
-        <MessageCircle className="h-7 w-7 text-white" />
+        <MessageCircle color="white" className="h-7 w-7 " fill="transparent" />
       </Button>
-      <Text style={styles.buttonText}>{video.commentCount}</Text>
+      <Text style={styles.buttonText}>{currentVideo?.commentCount ?? 0}</Text>
     </View>
   );
 }

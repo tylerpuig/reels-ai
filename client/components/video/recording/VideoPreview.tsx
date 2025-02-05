@@ -73,13 +73,6 @@ export default function VideoPreview({
     }
   };
 
-  const handlePlaybackStatusUpdate = (status: ExpoVideo.AVPlaybackStatus) => {
-    if (status.isLoaded) {
-      // Loop the video
-      video.current?.replayAsync();
-    }
-  };
-
   const containerStyle = {
     transform: pan.getTranslateTransform(),
   };
@@ -97,7 +90,7 @@ export default function VideoPreview({
           resizeMode={ExpoVideo.ResizeMode.COVER}
           isLooping={true}
           shouldPlay={true}
-          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+          // onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
         />
 
         {/* Swipe indicator */}

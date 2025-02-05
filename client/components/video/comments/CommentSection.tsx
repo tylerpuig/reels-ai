@@ -16,6 +16,7 @@ import { useVideoStore } from "../useVideoStore";
 import Comment from "./Comment";
 import { trpc } from "../../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
+import { useVideoContext } from "@/hooks/useVideoContext";
 
 const { height } = Dimensions.get("window");
 const COMMENT_SECTION_HEIGHT = height * 0.6;
@@ -29,32 +30,21 @@ export default function CommentSection() {
     videoPaginationSkip,
   } = useVideoStore();
   const { session } = useSessionStore();
+  const { currentVideo, setCurrentVideo } = useVideoContext();
   const [newComment, setNewComment] = useState("");
   const slideAnim = useRef(new Animated.Value(COMMENT_SECTION_HEIGHT)).current;
   const panY = useRef(new Animated.Value(0)).current;
-
-  console.log(activeVideoId);
 
   const { data: comments, refetch: refetchComments } =
     trpc.videos.getvideoComments.useQuery({
       videoId: activeVideoId,
     });
 
-  const { refetch: refetchVideos } = trpc.videos.getVideos.useQuery(
-    {
-      skip: videoPaginationSkip,
-      userId: session?.user?.id ?? "",
-    },
-    {
-      enabled: false,
-    }
-  );
-
   const addCommentMutation = trpc.videos.createComment.useMutation({
     onSuccess: () => {
       refetchComments();
       setNewComment("");
-      refetchVideos();
+      // refetchVideos();
     },
   });
 
@@ -65,6 +55,15 @@ export default function CommentSection() {
       videoId: activeVideoId,
       content: newComment.trim(),
       userId: session?.user?.id ?? "",
+    });
+
+    setCurrentVideo((prev) => {
+      if (!prev) return null;
+
+      return {
+        ...prev,
+        commentCount: prev.commentCount + 1,
+      };
     });
   };
 

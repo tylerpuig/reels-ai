@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   FlatList,
@@ -7,6 +7,9 @@ import {
   Text,
   ViewToken,
   TouchableOpacity,
+  Animated,
+  PanResponder,
+  Pressable,
 } from "react-native";
 import { Button } from "~/components/ui/button";
 import {
@@ -28,210 +31,117 @@ import { trpc } from "@/trpc/client";
 import LikeButton from "./actions/LikeButton";
 import VideoComments from "./actions/VideoComments";
 import { useSessionStore } from "@/hooks/useSession";
-
-const { width, height } = Dimensions.get("window");
-const TAB_BAR_HEIGHT = 49;
+import { useVideoContext } from "@/hooks/useVideoContext";
 
 export function VideoFeed() {
-  const { setSelectedVideo, videoPaginationSkip } = useVideoStore();
+  const { setSelectedVideo, videoPaginationSkip, selectedVideo } =
+    useVideoStore();
+  const { currentVideo, setCurrentVideo } = useVideoContext();
+
   const { session } = useSessionStore();
-  const insets = useSafeAreaInsets();
-  const containerHeight = height - TAB_BAR_HEIGHT - insets.top;
-  const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
-
-  const { data: videos } = trpc.videos.getVideos.useQuery(
-    {
-      skip: videoPaginationSkip,
-      userId: session?.user?.id ?? "",
-    },
-    {
-      staleTime: 0,
-      cacheTime: 0,
+  const [currentViewableItemIndex, setCurrentViewableItemIndex] = useState(0);
+  const viewabilityConfig = { viewAreaCoveragePercentThreshold: 50 };
+  const onViewableItemsChanged = ({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setCurrentViewableItemIndex(viewableItems[0].index ?? 0);
     }
-  );
-
-  const onViewableItemsChanged = useCallback(
-    ({ changed }: { changed: ViewToken[] }) => {
-      const changedItem = changed[0];
-      setSelectedVideoIndex(changedItem?.index ?? 0);
-
-      // Update selected video whenever videos data changes
-      if (videos?.[changedItem?.index ?? 0]) {
-        setSelectedVideo(videos[changedItem?.index ?? 0]);
-      }
-    },
-    [videos, setSelectedVideo]
-  );
-
-  const renderItem = ({ item, index }: { item: VideoData; index: number }) => {
-    return <VideoItem video={item} isActive={selectedVideoIndex === index} />;
   };
+  const viewabilityConfigCallbackPairs = useRef([
+    { viewabilityConfig, onViewableItemsChanged },
+  ]);
+
+  const { data: videos, refetch: refetchVideos } =
+    trpc.videos.getVideos.useQuery(
+      {
+        skip: videoPaginationSkip,
+        userId: session?.user?.id ?? "",
+      },
+      {
+        staleTime: 0,
+        cacheTime: 0,
+      }
+    );
+
+  useEffect(() => {
+    if (videos && videos[currentViewableItemIndex]) {
+      setCurrentVideo(videos[currentViewableItemIndex]);
+    }
+  }, [currentViewableItemIndex]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <FeedToggle />
+    <View style={styles.container}>
       <FlatList
-        data={videos || []}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        data={videos}
+        renderItem={({ item, index }) => (
+          <Item item={item} shouldPlay={index === currentViewableItemIndex} />
+        )}
+        keyExtractor={(item) => item.videoUrl}
         pagingEnabled
-        snapToInterval={containerHeight}
-        snapToAlignment="start"
-        decelerationRate="fast"
+        horizontal={false}
         showsVerticalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{
-          itemVisiblePercentThreshold: 50,
-        }}
+        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+        contentContainerStyle={styles.flatListContent}
+        decelerationRate="fast"
+        snapToInterval={Dimensions.get("window").height}
+        snapToAlignment="start"
       />
     </View>
   );
 }
 
-interface VideoItemProps {
-  video: VideoData;
-  isActive: boolean;
-}
+const Item = ({
+  item,
+  shouldPlay,
+}: {
+  shouldPlay: boolean;
+  item: VideoData;
+}) => {
+  const video = React.useRef<ExpoVideo | null>(null);
+  const [status, setStatus] = useState<any>(null);
+  // const [videoState, setVideoState] = useState<VideoData | null>(null);
+  const { currentVideo, setCurrentVideo } = useVideoContext();
 
-function VideoItem({ video, isActive }: VideoItemProps) {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const videoRef = React.useRef<ExpoVideo>(null);
-  const [status, setStatus] = React.useState({});
-  const { setIsCommentsVisible } = useVideoStore();
-  const [isPaused, setIsPaused] = useState(false);
-  const [showPlayButton, setShowPlayButton] = useState(false);
+  useEffect(() => {
+    if (!video.current) return;
 
-  React.useEffect(() => {
-    if (videoRef.current && isActive) {
-      videoRef.current.playAsync();
-    }
-
-    return () => {
-      if (videoRef.current) {
-        videoRef.current.pauseAsync();
-      }
-    };
-  }, [isActive]);
-
-  function handlePause() {
-    setIsPaused((prev) => !prev);
-    if (isPaused) {
-      videoRef.current?.playAsync();
+    if (shouldPlay) {
+      video.current.playAsync();
     } else {
-      videoRef.current?.pauseAsync();
+      video.current.pauseAsync();
+      video.current.setPositionAsync(0);
     }
-  }
+  }, [shouldPlay]);
 
-  const styles = StyleSheet.create({
-    container: {
-      width: width,
-      height: height - TAB_BAR_HEIGHT - insets.top,
-      backgroundColor: "black",
-    },
-    video: {
-      ...StyleSheet.absoluteFillObject,
-      width: "100%",
-      height: "100%",
-    },
-    overlayContainer: {
-      ...StyleSheet.absoluteFillObject,
-      justifyContent: "space-between",
-      flexDirection: "row",
-      padding: 20,
-    },
-    textContainer: {
-      flex: 1,
-      justifyContent: "flex-end",
-      paddingRight: 80,
-      paddingBottom: 40,
-    },
-    buttonContainer: {
-      position: "absolute",
-      right: 16,
-      bottom: 120,
-      alignItems: "center",
-      gap: 16,
-      zIndex: 10,
-    },
-    username: {
-      color: "white",
-      fontSize: 18,
-      fontWeight: "bold",
-      marginBottom: 8,
-    },
-    description: {
-      color: "white",
-      fontSize: 14,
-    },
-    buttonText: {
-      color: "white",
-      fontSize: 12,
-      marginTop: 4,
-    },
-    playButtonContainer: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 5,
-    },
-    playButton: {
-      backgroundColor: "rgba(0, 0, 0, 0.4)",
-      padding: 20,
-      borderRadius: 50,
-    },
-  });
+  useEffect(() => {
+    setCurrentVideo(item);
+  }, [item]);
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={() => {
-          handlePause();
-          // handleVideoPress();
-        }}
-        style={StyleSheet.absoluteFill}
-      >
+    <Pressable
+      onPress={() =>
+        status.isPlaying
+          ? video.current?.pauseAsync()
+          : video.current?.playAsync()
+      }
+      style={styles.itemContainer}
+    >
+      <View style={styles.videoContainer}>
         <ExpoVideo
-          ref={videoRef}
+          ref={video}
+          source={{ uri: item.videoUrl }}
           style={styles.video}
-          source={{ uri: video.videoUrl }}
-          resizeMode={ResizeMode.COVER}
           isLooping
-          shouldPlay={false}
-          onPlaybackStatusUpdate={setStatus}
+          resizeMode={ResizeMode.COVER}
+          useNativeControls={false}
+          onPlaybackStatusUpdate={(status) => setStatus(() => status)}
         />
-      </TouchableOpacity>
-
-      {showPlayButton && (
-        <View style={styles.playButtonContainer}>
-          <View style={styles.playButton}>
-            {isPaused ? (
-              <Play color="white" size={48} />
-            ) : (
-              <Pause color="white" size={48} />
-            )}
-          </View>
-        </View>
-      )}
-
-      <View style={styles.overlayContainer}>
-        <View style={styles.textContainer}>
-          <Text style={styles.username}>{video.title}</Text>
-          <Text style={styles.description}>{video.description}</Text>
-        </View>
-
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={() => {
-              router.push({
-                pathname: "/(modals)/viewprofile/[id]",
-                params: { id: "1" },
-              });
+              // router.push({
+              //   pathname: "/(modals)/viewprofile/[id]",
+              //   params: { id: "1" },
+              // });
             }}
             style={{ alignItems: "center" }}
           >
@@ -243,15 +153,19 @@ function VideoItem({ video, isActive }: VideoItemProps) {
             </Avatar>
             <Text style={styles.buttonText}>Profile</Text>
           </TouchableOpacity>
-          <LikeButton video={video} />
+          <LikeButton
+            setVideoState={setCurrentVideo}
+            video={item}
+            videoState={currentVideo}
+          />
 
-          <VideoComments video={video} />
+          <VideoComments video={item} />
           <Button
             onPress={() => {
-              router.push({
-                pathname: "/(modals)/listing/[id]",
-                params: { id: "1" },
-              });
+              // router.push({
+              //   pathname: "/(modals)/listing/[id]",
+              //   params: { id: "1" },
+              // });
             }}
             variant="default"
             size="icon"
@@ -261,10 +175,10 @@ function VideoItem({ video, isActive }: VideoItemProps) {
           </Button>
           <Button
             onPress={() => {
-              router.push({
-                pathname: "/(modals)/listing/[id]",
-                params: { id: "1" },
-              });
+              // router.push({
+              //   pathname: "/(modals)/listing/[id]",
+              //   params: { id: "1" },
+              // });
             }}
             variant="default"
             size="icon"
@@ -274,6 +188,40 @@ function VideoItem({ video, isActive }: VideoItemProps) {
           </Button>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  flatListContent: {
+    flexGrow: 0,
+  },
+  itemContainer: {
+    height: Dimensions.get("window").height,
+    width: Dimensions.get("window").width,
+  },
+  videoContainer: {
+    flex: 1,
+  },
+  video: {
+    width: "100%",
+    height: "100%",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 12,
+    marginTop: 4,
+  },
+  buttonContainer: {
+    position: "absolute",
+    right: 16,
+    bottom: 220,
+    alignItems: "center",
+    gap: 16,
+    zIndex: 10,
+  },
+});

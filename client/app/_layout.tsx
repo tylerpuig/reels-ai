@@ -22,6 +22,7 @@ import { View } from "react-native";
 import { NAV_THEME } from "~/lib/constants";
 import { useSessionStore } from "@/hooks/useSession";
 import { APP_URL } from "../constants/app";
+import { VideoProvider } from "@/hooks/useVideoContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -94,33 +95,35 @@ export default function RootLayout() {
     <ThemeProvider value={DARK_THEME}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-            <Stack.Screen
-              name="(modals)/viewprofile/[id]"
-              options={{
-                headerShown: false,
-                title: "View Profile",
-                presentation: "card",
-                animation: "slide_from_right",
-                gestureEnabled: true,
-                gestureDirection: "horizontal",
-              }}
-            />
-            <Stack.Screen
-              name="(modals)/listing/[id]"
-              options={{
-                headerShown: false,
-                title: "View Listing",
-                presentation: "card",
-                animation: "slide_from_right",
-                gestureEnabled: true,
-                gestureDirection: "horizontal",
-              }}
-            />
-          </Stack>
-          <StatusBar style="auto" />
+          <VideoProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+              <Stack.Screen
+                name="(modals)/viewprofile/[id]"
+                options={{
+                  headerShown: false,
+                  title: "View Profile",
+                  presentation: "card",
+                  animation: "slide_from_right",
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                }}
+              />
+              <Stack.Screen
+                name="(modals)/listing/[id]"
+                options={{
+                  headerShown: false,
+                  title: "View Listing",
+                  presentation: "card",
+                  animation: "slide_from_right",
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                }}
+              />
+            </Stack>
+            <StatusBar style="auto" />
+          </VideoProvider>
         </QueryClientProvider>
       </trpc.Provider>
     </ThemeProvider>

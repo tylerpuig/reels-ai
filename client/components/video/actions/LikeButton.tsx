@@ -15,7 +15,15 @@ const styles = {
   },
 };
 
-export default function LikeButton({ video }: { video: VideoData }) {
+export default function LikeButton({
+  video,
+  videoState,
+  setVideoState,
+}: {
+  video: VideoData;
+  videoState: VideoData | null;
+  setVideoState: React.Dispatch<React.SetStateAction<VideoData | null>>;
+}) {
   const { videoPaginationSkip } = useVideoStore();
   const { session } = useSessionStore();
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -32,7 +40,7 @@ export default function LikeButton({ video }: { video: VideoData }) {
 
   const modifyVideoLike = trpc.videos.modifyVideoLike.useMutation({
     onSuccess: () => {
-      refetchVideos();
+      // refetchVideos();
       // Trigger pop animation on successful like
     },
   });
@@ -57,7 +65,19 @@ export default function LikeButton({ video }: { video: VideoData }) {
     modifyVideoLike.mutate({
       videoId: video.id,
       userId: session?.user?.id,
-      action: video?.hasLiked ? "unlike" : "like",
+      action: videoState?.hasLiked ? "unlike" : "like",
+    });
+
+    setVideoState((prev) => {
+      const hasLikedVideo = prev?.hasLiked;
+      if (prev) {
+        return {
+          ...prev,
+          likeCount: hasLikedVideo ? prev.likeCount - 1 : prev.likeCount + 1,
+          hasLiked: !prev.hasLiked,
+        };
+      }
+      return null;
     });
   };
 
@@ -70,14 +90,15 @@ export default function LikeButton({ video }: { video: VideoData }) {
           size="icon"
           className="bg-transparent"
         >
-          {video?.hasLiked ? (
-            <Heart className="h-7 w-7 text-white" fill="blue" />
-          ) : (
-            <Heart className="h-7 w-7 text-white" />
-          )}
+          <Heart
+            size={28}
+            color="white"
+            strokeWidth={2}
+            fill={videoState?.hasLiked ? "#3b82f6" : "transparent"}
+          />
         </Button>
       </Animated.View>
-      <Text style={styles.buttonText}>{video?.likeCount ?? 0}</Text>
+      <Text style={styles.buttonText}>{videoState?.likeCount ?? 0}</Text>
     </View>
   );
 }

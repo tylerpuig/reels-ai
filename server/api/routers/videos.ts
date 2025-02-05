@@ -5,6 +5,7 @@ import { protectedProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
 import { and, eq, sql } from "drizzle-orm";
+import { generatePresignedUrl } from "../../integrations/s3.js";
 
 export const videosRouter = createTRPCRouter({
   getVideos: protectedProcedure
@@ -140,6 +141,43 @@ export const videosRouter = createTRPCRouter({
           .update(schema.videosTable)
           .set({ commentCount: sql`${schema.videosTable.commentCount} + 1` })
           .where(eq(schema.videosTable.id, input.videoId));
+      } catch (error) {
+        console.log(error);
+      }
+    }),
+  getVideoUploadUrl: protectedProcedure
+    .input(
+      z.object({
+        videoFilename: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const result = await generatePresignedUrl(input.videoFilename);
+
+      if (!result) {
+        throw new Error("Failed to generate pre-signed URL");
+      }
+
+      return { uploadUrl: result.uploadUrl, fileUrl: result.fileUrl };
+    }),
+  newVideoEntry: protectedProcedure
+    .input(
+      z.object({
+        fileName: z.string(),
+        url: z.string(),
+        userId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        await db.insert(schema.videosTable).values([
+          {
+            userId: input.userId,
+            title: input.fileName,
+            description: "",
+            videoUrl: input.url,
+          },
+        ]);
       } catch (error) {
         console.log(error);
       }
