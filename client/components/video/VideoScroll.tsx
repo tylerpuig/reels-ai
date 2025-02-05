@@ -7,12 +7,20 @@ import {
 import { VideoFeed } from "./VideoItem";
 import CommentSection from "./comments/CommentSection";
 import { useVideoStore } from "./useVideoStore";
+import ShareModal from "./ShareVideo";
+import { useVideoContext } from "@/hooks/useVideoContext";
 
 const { height } = Dimensions.get("window");
 const COMMENT_SECTION_HEIGHT = height * 0.8;
 
 export function VideoScroll() {
-  const { isCommentsVisible, toggleIsCommentsVisible } = useVideoStore();
+  const {
+    isCommentsVisible,
+    toggleIsCommentsVisible,
+    isShareModalVisible,
+    setIsShareModalVisible,
+  } = useVideoStore();
+  const { currentVideo } = useVideoContext();
 
   // Click away handler
   const handleClickAway = () => {
@@ -34,6 +42,11 @@ export function VideoScroll() {
 
       {/* Animated Comments Section */}
       <CommentSection />
+      <ShareModal
+        contentUrl={currentVideo?.videoUrl ?? ""}
+        visible={isShareModalVisible}
+        onClose={() => setIsShareModalVisible(false)}
+      />
     </View>
   );
 }

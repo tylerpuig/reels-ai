@@ -38,7 +38,7 @@ export const videosRouter = createTRPCRouter({
           .orderBy(desc(schema.videosTable.createdAt))
           .offset(input.skip);
 
-        console.log(videos);
+        // console.log(videos);
 
         return videos;
       } catch (error) {

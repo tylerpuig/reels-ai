@@ -103,7 +103,7 @@ const Item = ({
   const router = useRouter();
   const video = React.useRef<ExpoVideo | null>(null);
   const [status, setStatus] = useState<any>(null);
-  // const [videoState, setVideoState] = useState<VideoData | null>(null);
+  const { setIsShareModalVisible } = useVideoStore();
   const { currentVideo, setCurrentVideo } = useVideoContext();
 
   useEffect(() => {
@@ -140,6 +140,7 @@ const Item = ({
           useNativeControls={false}
           onPlaybackStatusUpdate={(status) => setStatus(() => status)}
         />
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={() => {
@@ -165,12 +166,10 @@ const Item = ({
           />
 
           <VideoComments video={item} />
+
           <Button
             onPress={() => {
-              router.push({
-                pathname: "/(modals)/listing/[id]",
-                params: { id: "1" },
-              });
+              setIsShareModalVisible(true);
             }}
             variant="default"
             size="icon"
@@ -180,10 +179,10 @@ const Item = ({
           </Button>
           <Button
             onPress={() => {
-              // router.push({
-              //   pathname: "/(modals)/listing/[id]",
-              //   params: { id: "1" },
-              // });
+              router.push({
+                pathname: "/(modals)/listing/[id]",
+                params: { id: "1" },
+              });
             }}
             variant="default"
             size="icon"

@@ -27,10 +27,9 @@ export default function CommentSection() {
     toggleIsCommentsVisible,
     setIsCommentsVisible,
     activeVideoId,
-    videoPaginationSkip,
   } = useVideoStore();
   const { session } = useSessionStore();
-  const { currentVideo, setCurrentVideo } = useVideoContext();
+  const { setCurrentVideo } = useVideoContext();
   const [newComment, setNewComment] = useState("");
   const slideAnim = useRef(new Animated.Value(COMMENT_SECTION_HEIGHT)).current;
   const panY = useRef(new Animated.Value(0)).current;
