@@ -45,6 +45,12 @@
           "microphonePermission": "Allow ReelsAI to access your microphone",
           "recordAudioAndroid": true
         }
+      ],
+      [
+        "react-native-create-thumbnail",
+        {
+          "enableCustomFormat": true
+        }
       ]
     ],
     "experiments": {

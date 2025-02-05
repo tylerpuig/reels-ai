@@ -144,10 +144,10 @@ const Item = ({
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={() => {
-              // router.push({
-              //   pathname: "/(modals)/viewprofile/[id]",
-              //   params: { id: "1" },
-              // });
+              router.push({
+                pathname: "/(modals)/viewprofile/[id]",
+                params: { id: "1" },
+              });
             }}
             style={{ alignItems: "center" }}
           >

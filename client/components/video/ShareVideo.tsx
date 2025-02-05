@@ -157,34 +157,34 @@ export default function ShareModal({
             onPress={() => handleShare("copyLink")}
           />
           <ShareButton
+            icon="chatbubbles"
+            label="Messages"
+            color="#007AFF"
+            onPress={() => handleShare("sms")}
+          />
+          <ShareButton
             icon="logo-whatsapp"
             label="WhatsApp"
             color="#25D366"
             onPress={() => handleShare("whatsapp")}
           />
-          <ShareButton
+          {/* <ShareButton
             icon="stats-chart"
             label="Status"
             color="#25D366"
             onPress={() => handleShare("whatsapp")}
-          />
-          <ShareButton
+          /> */}
+          {/* <ShareButton
             icon="logo-instagram"
             label="Instagram"
             color="#E4405F"
             onPress={() => handleShare("instagram")}
-          />
+          /> */}
           <ShareButton
             icon="logo-tiktok"
             label="TikTok"
             color="#000000"
             onPress={() => handleShare("tiktok")}
-          />
-          <ShareButton
-            icon="chatbubbles"
-            label="Messages"
-            color="#007AFF"
-            onPress={() => handleShare("sms")}
           />
         </View>
 

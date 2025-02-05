@@ -14,7 +14,7 @@ if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
   throw new Error("AWS credentials not found");
 }
 
-type VideoInfo = {
+export type VideoInfo = {
   title: string;
   description: string;
   path: string;
@@ -37,6 +37,7 @@ const videos: VideoInfo[] = [
     path: "penhoust_palace_chi.mp4",
   },
 ];
+
 // const fileNames = [
 //   "most_expensive_il.mp4",
 //   "ny_video.mp4",
@@ -45,10 +46,18 @@ const videos: VideoInfo[] = [
 
 const bucketName = process.env.S3_BUCKET_NAME!;
 const region = process.env.AWS_REGION!;
-const uploadVideoToS3 = async (localVideoPath: string) => {
+export const uploadVideoToS3 = async (localVideoPath: string) => {
   try {
     console.log("uploading to s3", localVideoPath);
-    // AWS configuration
+
+    // First verify the file exists
+    if (!fs.existsSync(localVideoPath)) {
+      throw new Error(`File not found: ${localVideoPath}`);
+    }
+
+    // Get file stats before creating the stream
+    const fileStats = fs.statSync(localVideoPath);
+
     const s3Client = new S3Client({
       region: region,
       credentials: {
@@ -57,26 +66,20 @@ const uploadVideoToS3 = async (localVideoPath: string) => {
       },
     });
 
-    // Read the file
-    const fileStream = fs.createReadStream(localVideoPath);
-    const fileExtension = path.extname(localVideoPath);
-
-    // Generate unique filename
+    // Read the file as a buffer instead of a stream
+    const fileContent = fs.readFileSync(localVideoPath);
+    const fileExtension = path.extname(localVideoPath) || ".mp4";
     const filename = `video-${Date.now()}${fileExtension}`;
-
-    // Determine content type
     const contentType = mime.lookup(fileExtension) || "video/mp4";
 
-    // Set up the upload parameters
     const uploadParams = {
       Bucket: bucketName,
       Key: filename,
-      Body: fileStream,
+      Body: fileContent, // Use the buffer instead of stream
       ContentType: contentType,
-      //   ACL: "public-read",
+      ContentLength: fileStats.size,
     };
 
-    // Upload to S3
     const command = new PutObjectCommand(uploadParams);
     await s3Client.send(command);
 
@@ -84,8 +87,6 @@ const uploadVideoToS3 = async (localVideoPath: string) => {
     console.log(s3Url);
 
     return s3Url;
-
-    // Return the URL of the uploaded video
   } catch (error) {
     console.error("Error uploading to S3:", error);
     throw error;
@@ -95,14 +96,19 @@ const uploadVideoToS3 = async (localVideoPath: string) => {
 async function main() {
   for (const video of videos) {
     const localVideoPath = path.join(process.env.VIDEOS_PATH!, `${video.path}`);
-    console.log(localVideoPath);
-    const s3Url = await uploadVideoToS3(localVideoPath);
-    await insertVideo(video, s3Url);
+    // console.log(localVideoPath);
+    const s3Url = await uploadVideoToS3(video.path);
+    const videoInfo: VideoInfo = {
+      title: video.title,
+      description: video.description,
+      path: localVideoPath,
+    };
+    await insertVideo(videoInfo, s3Url);
   }
 }
 main();
 
-async function insertVideo(video: VideoInfo, s3Url: string) {
+export async function insertVideo(video: VideoInfo, s3Url: string) {
   try {
     // const randInt = Math.floor(Math.random() * 1000);
     await db.insert(schema.videosTable).values([

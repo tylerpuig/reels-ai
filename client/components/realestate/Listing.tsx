@@ -21,19 +21,19 @@ interface HouseListingProps {
 const images: { id: string; uri: string }[] = [
   {
     id: "1",
-    uri: "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f3826030693rd-w2048_h1536.webp",
+    uri: "https://na.rdcpix.com/8c0c5a1ca9e8c800cf7d6996f7e8c075w-c4132190752rd-w832_h468_r4_q80.webp",
   },
   {
     id: "2",
-    uri: "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40i-f2022366352rd-w2048_h1536.webp",
+    uri: "https://na.rdcpix.com/b8f337dcf063a3dd34623edd77485fdew-c4258344017rd-w832_q80.jpg",
   },
   {
     id: "3",
-    uri: "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f1352720996rd-w2048_h1536.webp",
+    uri: "https://na.rdcpix.com/40375f3fda3c1218fdf8b3131ae2b8fdw-c4086160332rd-w832_q80.jpg",
   },
   {
     id: "4",
-    uri: "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f1352720996rd-w2048_h1536.webp",
+    uri: "https://na.rdcpix.com/b6e77db8f028b36bce82a41affba51cdw-c611782258rd-w832_q80.jpg",
   },
 ];
 
