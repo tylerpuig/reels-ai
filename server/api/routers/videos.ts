@@ -1,10 +1,9 @@
-// import { initTRPC } from "@trpc/server";
 import { createTRPCRouter } from "../trpc.js";
 import { z } from "zod";
 import { protectedProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, desc } from "drizzle-orm";
 import { generatePresignedUrl } from "../../integrations/s3.js";
 
 export const videosRouter = createTRPCRouter({
@@ -36,6 +35,7 @@ export const videosRouter = createTRPCRouter({
               eq(schema.videoLikesTable.userId, input.userId)
             )
           )
+          .orderBy(desc(schema.videosTable.createdAt))
           .offset(input.skip);
 
         console.log(videos);

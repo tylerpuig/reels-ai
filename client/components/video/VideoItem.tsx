@@ -100,6 +100,7 @@ const Item = ({
   shouldPlay: boolean;
   item: VideoData;
 }) => {
+  const router = useRouter();
   const video = React.useRef<ExpoVideo | null>(null);
   const [status, setStatus] = useState<any>(null);
   // const [videoState, setVideoState] = useState<VideoData | null>(null);
@@ -166,10 +167,10 @@ const Item = ({
           <VideoComments video={item} />
           <Button
             onPress={() => {
-              // router.push({
-              //   pathname: "/(modals)/listing/[id]",
-              //   params: { id: "1" },
-              // });
+              router.push({
+                pathname: "/(modals)/listing/[id]",
+                params: { id: "1" },
+              });
             }}
             variant="default"
             size="icon"

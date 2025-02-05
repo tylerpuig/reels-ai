@@ -40,8 +40,7 @@ export default function LikeButton({
 
   const modifyVideoLike = trpc.videos.modifyVideoLike.useMutation({
     onSuccess: () => {
-      // refetchVideos();
-      // Trigger pop animation on successful like
+      refetchVideos();
     },
   });
 

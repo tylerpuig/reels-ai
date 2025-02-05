@@ -7,42 +7,81 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
-const windowWidth = Dimensions.get("window").width;
+import { Linking, Platform } from "react-native";
+import ContactModal from "../realestate/ContactAgentModal";
 
 interface HouseListingProps {
   listingId: string;
 }
 
+const images: string[] = [
+  "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f3826030693rd-w2048_h1536.webp",
+  "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f1352720996rd-w2048_h1536.webp",
+  "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40i-f3758459191rd-w2048_h1536.webp",
+  "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40i-f518094874rd-w2048_h1536.webp",
+];
+
+const listing = {
+  price: "$849,000",
+  address: "123 Maple Street",
+  city: "Beverly Hills",
+  state: "CA",
+  zip: "90210",
+  beds: 4,
+  baths: 3,
+  sqft: "2,450",
+  description:
+    "Stunning modern home featuring an open concept living space, gourmet kitchen with premium appliances, and a spacious primary suite. The backyard offers a peaceful retreat with mature landscaping and a covered patio perfect for entertaining.",
+  agent: {
+    name: "Sarah Johnson",
+    photo: "https://placekitten.com/200/200",
+    phone: "(555) 123-4567",
+    agency: "Luxury Real Estate Group",
+  },
+  images: images.map((el) => {
+    return {
+      id: el,
+      uri: el,
+    };
+  }),
+};
+
 export default function HomeListing({ listingId }: HouseListingProps) {
   const router = useRouter();
+  const [showContactModal, setShowContactModal] = useState(false);
 
   // Mock data - in a real app, this would come from an API
-  const listing = {
-    price: "$849,000",
-    address: "123 Maple Street",
-    city: "Beverly Hills",
-    state: "CA",
-    zip: "90210",
-    beds: 4,
-    baths: 3,
-    sqft: "2,450",
-    description:
-      "Stunning modern home featuring an open concept living space, gourmet kitchen with premium appliances, and a spacious primary suite. The backyard offers a peaceful retreat with mature landscaping and a covered patio perfect for entertaining.",
-    agent: {
-      name: "Sarah Johnson",
-      photo: "https://placekitten.com/200/200",
-      phone: "(555) 123-4567",
-      agency: "Luxury Real Estate Group",
-    },
-    images: [
-      { id: "1", uri: "https://placekitten.com/800/600" },
-      { id: "2", uri: "https://placekitten.com/801/600" },
-      { id: "3", uri: "https://placekitten.com/802/600" },
-      { id: "4", uri: "https://placekitten.com/803/600" },
-    ],
+
+  const makePhoneCall = (phoneNumber: string) => {
+    try {
+      // Remove any non-numeric characters from the phone number
+      const cleanNumber = phoneNumber.replace(/[^\d]/g, "");
+
+      // Create the phone URL scheme
+      const url = Platform.select({
+        ios: `telprompt:${cleanNumber}`,
+        android: `tel:${cleanNumber}`,
+      });
+
+      if (!url) return;
+
+      // Check if the device can handle the phone URL scheme
+      Linking.canOpenURL(url)
+        .then((supported) => {
+          if (!supported) {
+            console.log("Phone number is not available");
+            // Handle the case where phone calls aren't supported
+          } else {
+            return Linking.openURL(url);
+          }
+        })
+        .catch((err) => console.log(err));
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const renderImageItem = ({ item, index }) => (
@@ -137,7 +176,12 @@ export default function HomeListing({ listingId }: HouseListingProps) {
                 {listing.agent.phone}
               </Text>
             </View>
-            <TouchableOpacity className="bg-white rounded-full p-3">
+            <TouchableOpacity
+              onPress={() => {
+                makePhoneCall(listing.agent.phone);
+              }}
+              className="bg-white rounded-full p-3"
+            >
               <Ionicons name="call" size={24} color="#0a0a0a" />
             </TouchableOpacity>
           </View>
@@ -145,13 +189,25 @@ export default function HomeListing({ listingId }: HouseListingProps) {
       </ScrollView>
 
       {/* Contact Button */}
-      <View className="p-5 border-t border-zinc-800">
-        <TouchableOpacity className="bg-white py-4 rounded-xl items-center">
+      <View className="p-5 border-t border-zinc-800 mb-4">
+        <TouchableOpacity
+          onPress={() => {
+            setShowContactModal(true);
+          }}
+          className="bg-white py-4 rounded-xl items-center"
+        >
           <Text className="text-base font-semibold text-black">
             Contact Agent
           </Text>
         </TouchableOpacity>
       </View>
+
+      <ContactModal
+        visible={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        agentName={listing.agent.name}
+        propertyAddress={listing.address}
+      />
     </View>
   );
 }
