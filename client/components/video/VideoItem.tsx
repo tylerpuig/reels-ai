@@ -23,9 +23,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useVideoStore } from "./useVideoStore";
 import { useRouter } from "expo-router";
-import { FeedToggle } from "./FeedToggle";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Video as ExpoVideo, ResizeMode } from "expo-av";
+import {
+  Video as ExpoVideo,
+  ResizeMode,
+  type AVPlaybackStatusSuccess,
+  type AVPlaybackStatus,
+} from "expo-av";
 import { type VideoData } from "~/trpc/types";
 import { trpc } from "@/trpc/client";
 import LikeButton from "./actions/LikeButton";
@@ -103,6 +106,9 @@ const Item = ({
   const router = useRouter();
   const video = React.useRef<ExpoVideo | null>(null);
   const [status, setStatus] = useState<any>(null);
+  // const [playbackStatus, setPlaybackStatus] = useState<AVPlaybackStatus | null>(
+  //   null
+  // );
   const { setIsShareModalVisible } = useVideoStore();
   const { currentVideo, setCurrentVideo } = useVideoContext();
 
@@ -117,17 +123,13 @@ const Item = ({
     }
   }, [shouldPlay]);
 
-  // useEffect(() => {
-  //   setCurrentVideo(item);
-  // }, [item]);
-
   return (
     <Pressable
-      onPress={() =>
-        status.isPlaying
+      onPress={() => {
+        status?.isPlaying
           ? video.current?.pauseAsync()
-          : video.current?.playAsync()
-      }
+          : video.current?.playAsync();
+      }}
       style={styles.itemContainer}
     >
       <View style={styles.videoContainer}>
@@ -179,6 +181,9 @@ const Item = ({
           </Button>
           <Button
             onPress={() => {
+              if (video.current) {
+                video.current.pauseAsync();
+              }
               router.push({
                 pathname: "/(modals)/listing/[id]",
                 params: { id: "1" },

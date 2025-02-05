@@ -9,6 +9,7 @@ import CommentSection from "./comments/CommentSection";
 import { useVideoStore } from "./useVideoStore";
 import ShareModal from "./ShareVideo";
 import { useVideoContext } from "@/hooks/useVideoContext";
+import { FeedToggle } from "./FeedToggle";
 
 const { height } = Dimensions.get("window");
 const COMMENT_SECTION_HEIGHT = height * 0.8;
@@ -34,6 +35,7 @@ export function VideoScroll() {
 
   return (
     <View style={styles.container}>
+      <FeedToggle />
       <VideoFeed />
 
       {/* Overlay for click away */}

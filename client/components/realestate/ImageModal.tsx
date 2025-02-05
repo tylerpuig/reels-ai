@@ -11,7 +11,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Decor8Types from "../realestate/integrations/decor8/types";
 import { requestImage } from "../realestate/integrations/decor8/utils";
 import { Button } from "~/components/ui/button";
 import ImageComparisonSlider from "./ImageComparisonSlider";
@@ -110,14 +109,51 @@ export default function ImageModal({ images }: ImageModalProps) {
                 />
               </View>
               <Text style={styles.visionText}>What's your vision?</Text>
-              <TextInput
+              <View
+                style={{
+                  position: "relative", // Container for TextInput and mic icon
+                  width: "100%",
+                }}
+              >
+                <TextInput
+                  placeholder="Add a comment about this image..."
+                  placeholderTextColor="#666"
+                  value={promptText}
+                  onChangeText={setPrompText}
+                  style={[
+                    styles.input,
+                    { paddingRight: 50 }, // Add padding to prevent text from going under the icon
+                  ]}
+                  multiline
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    // Add your voice recording logic here
+                    console.log("Mic pressed");
+                  }}
+                  style={{
+                    position: "absolute",
+                    bottom: 12,
+                    right: 12,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: "#f0f0f0",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Ionicons name="mic-outline" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+              {/* <TextInput
                 placeholder="Add a comment about this image..."
                 placeholderTextColor="#666"
                 value={promptText}
                 onChangeText={setPrompText}
                 style={styles.input}
                 multiline
-              />
+              /> */}
 
               <Button
                 className="bg-blue-500 mt-4"
