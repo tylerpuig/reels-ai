@@ -1,2 +1,2 @@
-import { db } from "../utils";
-import * as schema from "../../../db/schema";
+import { db } from "../utils.js";
+import * as schema from "../../../db/schema.js";
