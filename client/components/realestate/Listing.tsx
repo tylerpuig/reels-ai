@@ -12,16 +12,29 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Linking, Platform } from "react-native";
 import ContactModal from "../realestate/ContactAgentModal";
+import ImageModal from "../realestate/ImageModal";
 
 interface HouseListingProps {
   listingId: string;
 }
 
-const images: string[] = [
-  "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f3826030693rd-w2048_h1536.webp",
-  "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f1352720996rd-w2048_h1536.webp",
-  "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40i-f3758459191rd-w2048_h1536.webp",
-  "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40i-f518094874rd-w2048_h1536.webp",
+const images: { id: string; uri: string }[] = [
+  {
+    id: "1",
+    uri: "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f3826030693rd-w2048_h1536.webp",
+  },
+  {
+    id: "2",
+    uri: "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40i-f2022366352rd-w2048_h1536.webp",
+  },
+  {
+    id: "3",
+    uri: "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f1352720996rd-w2048_h1536.webp",
+  },
+  {
+    id: "4",
+    uri: "https://nh.rdcpix.com/c345d2fe5204b9ff2d53c62db2ec8e40e-f1352720996rd-w2048_h1536.webp",
+  },
 ];
 
 const listing = {
@@ -47,6 +60,12 @@ const listing = {
       uri: el,
     };
   }),
+};
+
+type ListingFeatureProps = {
+  icon: string;
+  label: string;
+  value: string | number;
 };
 
 export default function HomeListing({ listingId }: HouseListingProps) {
@@ -84,13 +103,9 @@ export default function HomeListing({ listingId }: HouseListingProps) {
     }
   };
 
-  const renderImageItem = ({ item, index }) => (
-    <Image source={{ uri: item.uri }} className="w-80 h-60 rounded-lg mr-4" />
-  );
-
-  const Feature = ({ icon, value, label }) => (
+  const Feature = ({ value, label }: ListingFeatureProps) => (
     <View className="items-center flex-1">
-      <Ionicons name={icon} size={24} color="white" />
+      <Ionicons size={24} color="white" />
       <Text className="text-lg font-bold text-white mb-1">{value}</Text>
       <Text className="text-xs text-zinc-400">{label}</Text>
     </View>
@@ -114,7 +129,8 @@ export default function HomeListing({ listingId }: HouseListingProps) {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Image Gallery */}
         <View className="py-4">
-          <FlatList
+          <ImageModal images={images} />
+          {/* <FlatList
             data={listing.images}
             renderItem={renderImageItem}
             keyExtractor={(item) => item.id}
@@ -122,7 +138,7 @@ export default function HomeListing({ listingId }: HouseListingProps) {
             showsHorizontalScrollIndicator={false}
             pagingEnabled
             className="pl-5"
-          />
+          /> */}
         </View>
 
         {/* Price and Address */}
