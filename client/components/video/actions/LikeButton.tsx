@@ -4,7 +4,7 @@ import { Heart } from "lucide-react-native";
 import { useVideoStore } from "../useVideoStore";
 import { trpc } from "../../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { type VideoData } from "../../../trpc/types";
 
 const styles = {

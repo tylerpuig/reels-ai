@@ -19,7 +19,7 @@ import { useSessionStore } from "@/hooks/useSession";
 import { useVideoContext } from "@/hooks/useVideoContext";
 
 const { height } = Dimensions.get("window");
-const COMMENT_SECTION_HEIGHT = height * 0.6;
+const COMMENT_SECTION_HEIGHT = height * 0.8;
 
 export default function CommentSection() {
   const {
@@ -156,36 +156,41 @@ export default function CommentSection() {
             contentContainerStyle={styles.commentsList}
           />
 
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={newComment}
-              onChangeText={setNewComment}
-              placeholder="Add a comment..."
-              placeholderTextColor="#666"
-              multiline
-              maxLength={500}
-              returnKeyType="send"
-              onSubmitEditing={handleSubmitComment}
-            />
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                !newComment.trim() && styles.sendButtonDisabled,
-              ]}
-              onPress={handleSubmitComment}
-              disabled={!newComment.trim()}
-            >
-              <Text
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.inputWrapper}
+          >
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={newComment}
+                onChangeText={setNewComment}
+                placeholder="Add a comment..."
+                placeholderTextColor="#666"
+                multiline
+                maxLength={500}
+                returnKeyType="send"
+                onSubmitEditing={handleSubmitComment}
+              />
+              <TouchableOpacity
                 style={[
-                  styles.sendButtonText,
-                  !newComment.trim() && styles.sendButtonTextDisabled,
+                  styles.sendButton,
+                  !newComment.trim() && styles.sendButtonDisabled,
                 ]}
+                onPress={handleSubmitComment}
+                disabled={!newComment.trim()}
               >
-                Post
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text
+                  style={[
+                    styles.sendButtonText,
+                    !newComment.trim() && styles.sendButtonTextDisabled,
+                  ]}
+                >
+                  Post
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
         </View>
       </Animated.View>
     </KeyboardAvoidingView>
@@ -206,7 +211,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   commentsList: {
-    paddingBottom: 80, // Add extra padding for input
+    paddingBottom: 20, // Add extra padding for input
   },
   commentsSectionContainer: {
     position: "absolute",
@@ -244,15 +249,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginVertical: 10,
   },
-  inputContainer: {
+  inputWrapper: {
     position: "absolute",
-    bottom: 60,
+    bottom: 0,
     left: 0,
     right: 0,
+    backgroundColor: "#000",
+  },
+  inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 10,
+    paddingBottom: 240,
     backgroundColor: "#000",
     borderTopWidth: 1,
     borderTopColor: "#333",

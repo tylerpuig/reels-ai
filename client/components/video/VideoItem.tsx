@@ -34,9 +34,8 @@ import { useSessionStore } from "@/hooks/useSession";
 import { useVideoContext } from "@/hooks/useVideoContext";
 
 export function VideoFeed() {
-  const { setSelectedVideo, videoPaginationSkip, selectedVideo } =
-    useVideoStore();
-  const { currentVideo, setCurrentVideo } = useVideoContext();
+  const { videoPaginationSkip } = useVideoStore();
+  const { setCurrentVideo } = useVideoContext();
 
   const { session } = useSessionStore();
   const [currentViewableItemIndex, setCurrentViewableItemIndex] = useState(0);
@@ -57,6 +56,7 @@ export function VideoFeed() {
         userId: session?.user?.id ?? "",
       },
       {
+        refetchOnMount: true,
         staleTime: 0,
         cacheTime: 0,
       }
@@ -66,6 +66,10 @@ export function VideoFeed() {
     if (videos && videos[currentViewableItemIndex]) {
       setCurrentVideo(videos[currentViewableItemIndex]);
     }
+  }, [currentViewableItemIndex, videos]);
+
+  useEffect(() => {
+    refetchVideos();
   }, [currentViewableItemIndex]);
 
   return (
@@ -112,9 +116,9 @@ const Item = ({
     }
   }, [shouldPlay]);
 
-  useEffect(() => {
-    setCurrentVideo(item);
-  }, [item]);
+  // useEffect(() => {
+  //   setCurrentVideo(item);
+  // }, [item]);
 
   return (
     <Pressable
@@ -171,7 +175,7 @@ const Item = ({
             size="icon"
             className="bg-transparent"
           >
-            <Share2 className="h-7 w-7 text-white" />
+            <Share2 className="h-7 w-7 text-white" color="white" />
           </Button>
           <Button
             onPress={() => {
@@ -184,7 +188,7 @@ const Item = ({
             size="icon"
             className="bg-transparent"
           >
-            <House className="h-7 w-7 text-white" />
+            <House className="h-7 w-7 text-white" color="white" />
           </Button>
         </View>
       </View>
