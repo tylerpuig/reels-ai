@@ -19,12 +19,6 @@ app.use(
 );
 app.use(express.json());
 
-// Add a simple test endpoint
-app.get("/health", (req, res) => {
-  // console.log(req);
-  res.json({ status: "ok" });
-});
-
 type NewUserRequest = {
   userId: string;
   name: string;
@@ -76,6 +70,6 @@ app.use(
   })
 );
 
-app.listen(3000, "0.0.0.0", () => {
-  console.log("tRPC server running at http://localhost:4130/trpc");
+app.listen(3003, "0.0.0.0", () => {
+  console.log("tRPC server running at http://localhost:3003/trpc");
 });
