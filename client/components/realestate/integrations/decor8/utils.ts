@@ -28,7 +28,6 @@ export async function requestImage(
 
     if (response.ok) {
       const data = (await response.json()) as Decor8Types.GenerationResponse;
-      console.log(data);
       return data;
     }
   } catch (err) {

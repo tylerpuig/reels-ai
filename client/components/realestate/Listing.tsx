@@ -72,8 +72,6 @@ export default function HomeListing({ listingId }: HouseListingProps) {
   const router = useRouter();
   const [showContactModal, setShowContactModal] = useState(false);
 
-  // Mock data - in a real app, this would come from an API
-
   const makePhoneCall = (phoneNumber: string) => {
     try {
       // Remove any non-numeric characters from the phone number

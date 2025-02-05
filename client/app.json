@@ -11,6 +11,11 @@
     "ios": {
       "supportsTablet": true
     },
+    "extra": {
+      "eas": {
+        "projectId": "91827fa8-23ed-4bca-8bf5-c51faa8346ad"
+      }
+    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
