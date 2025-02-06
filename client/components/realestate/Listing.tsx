@@ -109,8 +109,8 @@ export default function HomeListing({ listingId }: HouseListingProps) {
 
   const Feature = ({ value, label }: ListingFeatureProps) => (
     <View className="items-center flex-1">
-      <Ionicons size={24} color="white" />
-      <Text className="text-lg font-bold text-white mb-1">{value}</Text>
+      {/* <Ionicons size={12} color="white" /> */}
+      <Text className="text-lg font-bold text-white">{value}</Text>
       <Text className="text-xs text-zinc-400">{label}</Text>
     </View>
   );
@@ -161,7 +161,7 @@ export default function HomeListing({ listingId }: HouseListingProps) {
         {/* Price and Address */}
         <View className="px-5 pb-4">
           <Text className="text-3xl font-bold text-white mb-2">
-            {listingData?.listing.price}
+            {"$" + (listingData?.listing.price ?? "").toLocaleString("en-US")}
           </Text>
           <Text className="text-lg text-white mb-1">
             {listingData?.listing.address}
@@ -173,7 +173,7 @@ export default function HomeListing({ listingId }: HouseListingProps) {
         </View>
 
         {/* Features */}
-        <View className="flex-row justify-between items-center mx-5 py-4 px-5 bg-zinc-900 rounded-xl mb-4">
+        <View className="flex-row justify-between items-center mx-5 py-2 px-5 bg-zinc-900 rounded-xl mb-4">
           <Feature
             icon="bed-outline"
             value={listingData?.listing.beds}

@@ -225,8 +225,12 @@ export const videosRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       await db
         .delete(schema.videoLikesTable)
-        .where(eq(schema.videoLikesTable.userId, input.userId));
-
+        .where(
+          and(
+            eq(schema.videoLikesTable.userId, input.userId),
+            eq(schema.videoLikesTable.videoId, input.videoId)
+          )
+        );
       // decrement the like count for the video
       await db
         .update(schema.videosTable)

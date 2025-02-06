@@ -35,6 +35,8 @@ export function VideoFeed() {
       setCurrentViewableItemIndex(viewableItems[0].index ?? 0);
     }
   };
+
+  const pathname = usePathname();
   const viewabilityConfigCallbackPairs = useRef([
     { viewabilityConfig, onViewableItemsChanged },
   ]);
@@ -60,7 +62,7 @@ export function VideoFeed() {
 
   useEffect(() => {
     refetchVideos();
-  }, [currentViewableItemIndex]);
+  }, [currentViewableItemIndex, pathname]);
 
   useEffect(() => {
     if (initialVideoId && videos) {

@@ -104,7 +104,12 @@ export const listingsRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       await db
         .delete(schema.likedListingsTable)
-        .where(eq(schema.likedListingsTable.userId, input.userId));
+        .where(
+          and(
+            eq(schema.likedListingsTable.userId, input.userId),
+            eq(schema.likedListingsTable.listingId, input.listingId)
+          )
+        );
     }),
   getLikedListings: protectedProcedure
     .input(z.object({ userId: z.string() }))

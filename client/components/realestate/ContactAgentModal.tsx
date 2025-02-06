@@ -76,7 +76,7 @@ export default function ContactModal({
           onPress={onClose}
         >
           <Animated.View
-            className="bg-[#0a0a0a] rounded-t-3xl mt-auto"
+            className="bg-[#0a0a0a] rounded-t-3xl mt-auto pb-4"
             style={{
               transform: [
                 {
@@ -119,7 +119,7 @@ export default function ContactModal({
                 </View>
 
                 <View>
-                  <Text className="text-zinc-400 mb-2">Email Address</Text>
+                  <Text className="text-zinc-400 my-2">Email Address</Text>
                   <TextInput
                     className="bg-zinc-900 p-4 rounded-xl text-white"
                     placeholder="Enter your email"
@@ -134,7 +134,7 @@ export default function ContactModal({
                 </View>
 
                 <View>
-                  <Text className="text-zinc-400 mb-2">Phone Number</Text>
+                  <Text className="text-zinc-400 my-2">Phone Number</Text>
                   <TextInput
                     className="bg-zinc-900 p-4 rounded-xl text-white"
                     placeholder="Enter your phone number"
@@ -148,7 +148,7 @@ export default function ContactModal({
                 </View>
 
                 <View>
-                  <Text className="text-zinc-400 mb-2">Message</Text>
+                  <Text className="text-zinc-400 my-2">Message</Text>
                   <TextInput
                     className="bg-zinc-900 p-4 rounded-xl text-white h-32"
                     placeholder="Enter your message"
