@@ -17,15 +17,15 @@ import ImageComparisonSlider from "./ImageComparisonSlider";
 
 interface ImageModalProps {
   images: {
-    id: string;
-    uri: string;
+    id: number;
+    url: string;
   }[];
 }
 
 export default function ImageModal({ images }: ImageModalProps) {
   const [selectedImage, setSelectedImage] = useState<{
-    id: string;
-    uri: string;
+    id: number;
+    url: string;
   } | null>(null);
   const [promptText, setPrompText] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -38,9 +38,9 @@ export default function ImageModal({ images }: ImageModalProps) {
   async function makeRequest() {
     try {
       setIsGenerating(true);
-      if (!selectedImage?.uri) return;
+      if (!selectedImage?.url) return;
 
-      const response = await requestImage(promptText, selectedImage.uri);
+      const response = await requestImage(promptText, selectedImage.url);
 
       if (!response) return;
 
@@ -69,10 +69,13 @@ export default function ImageModal({ images }: ImageModalProps) {
           <TouchableOpacity
             key={image.id}
             style={[styles.imageContainer, { width: imageWidth }]}
-            onPress={() => setSelectedImage(image)}
+            onPress={() => {
+              // if (!image) return;
+              setSelectedImage(image);
+            }}
           >
             <Image
-              source={{ uri: image.uri }}
+              source={{ uri: image.url }}
               style={[styles.thumbnail, { width: imageWidth }]}
               resizeMode="cover"
             />
@@ -103,7 +106,7 @@ export default function ImageModal({ images }: ImageModalProps) {
             >
               <View style={styles.sliderContainer}>
                 <ImageComparisonSlider
-                  originalImage={selectedImage?.uri ?? ""}
+                  originalImage={selectedImage?.url ?? ""}
                   generatedImage={generatedImage}
                   sliderEnabled={sliderEnabled}
                 />

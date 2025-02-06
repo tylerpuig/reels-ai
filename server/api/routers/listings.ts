@@ -10,7 +10,7 @@ export const listingsRouter = createTRPCRouter({
     .input(z.object({ listingId: z.number() }))
     .query(async ({ input }) => {
       try {
-        const [result] = await db
+        const [listing] = await db
           .select({
             user: {
               id: schema.usersTable.id,
@@ -32,23 +32,27 @@ export const listingsRouter = createTRPCRouter({
               agentAgency: schema.listingsTable.agentAgency,
               agentName: schema.listingsTable.agentName,
             },
-            images: {
-              id: schema.listingImagesTable.id,
-              url: schema.listingImagesTable.url,
-            },
           })
           .from(schema.listingsTable)
           .where(eq(schema.listingsTable.id, input.listingId))
           .leftJoin(
             schema.usersTable,
             eq(schema.listingsTable.userId, schema.usersTable.id)
-          )
-          .leftJoin(
-            schema.listingImagesTable,
-            eq(schema.listingsTable.id, schema.listingImagesTable.listingId)
           );
 
-        return result;
+        const listingImages = await db
+          .select({
+            id: schema.listingImagesTable.id,
+            url: schema.listingImagesTable.url,
+          })
+          .from(schema.listingImagesTable)
+          .where(eq(schema.listingImagesTable.listingId, input.listingId));
+
+        return {
+          listing: listing.listing,
+          user: listing.user,
+          images: listingImages,
+        };
       } catch (error) {
         console.log(error);
       }
@@ -57,7 +61,7 @@ export const listingsRouter = createTRPCRouter({
     .input(z.object({ listingId: z.number(), userId: z.string() }))
     .query(async ({ input }) => {
       try {
-        const [result] = await db
+        const results = await db
           .select({
             isLiked: schema.likedListingsTable.userId,
           })
@@ -67,9 +71,12 @@ export const listingsRouter = createTRPCRouter({
               eq(schema.likedListingsTable.listingId, input.listingId),
               eq(schema.likedListingsTable.userId, input.userId)
             )
-          );
+          )
+          .limit(1);
 
-        return result;
+        return {
+          isLiked: results.length > 0,
+        };
       } catch (error) {
         console.log(error);
       }
@@ -91,7 +98,12 @@ export const listingsRouter = createTRPCRouter({
       } else {
         await db
           .delete(schema.likedListingsTable)
-          .where(eq(schema.likedListingsTable.userId, input.userId));
+          .where(
+            and(
+              eq(schema.likedListingsTable.userId, input.userId),
+              eq(schema.likedListingsTable.listingId, input.listingId)
+            )
+          );
       }
     }),
   unLikeListing: protectedProcedure

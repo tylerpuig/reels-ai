@@ -42,18 +42,20 @@ const demoImages = [
 
 async function seedDB() {
   try {
-    for (const user of demoUsers) {
-      await db.insert(schema.usersTable).values(user);
-    }
+    // for (const user of demoUsers) {
+    //   await db.insert(schema.usersTable).values(user);
+    // }
 
     const randInt = Math.floor(Math.random() * demoUsers.length);
-    const seedUserId = demoUsers[randInt].id;
+    // const seedUserId = demoUsers[randInt].id;
+    const seedUserId = "b9e1e276-519d-4706-913f-6d4e457d750e";
     const parsed = JSON.parse(
       await fs.readFile("../videos.json", "utf-8")
     ) as DBTypes.VideoInsertion[];
 
     let imgIndexCounter = 0;
-    for (const video of parsed) {
+    for (let i = 5; i < parsed.length; i++) {
+      const video = parsed[i];
       const listing = generateListing(seedUserId, video.title);
 
       // insert listing

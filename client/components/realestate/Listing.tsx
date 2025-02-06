@@ -1,5 +1,5 @@
 import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Linking, Platform } from "react-native";
@@ -7,6 +7,7 @@ import ContactModal from "../realestate/ContactAgentModal";
 import ImageModal from "../realestate/ImageModal";
 import { trpc } from "../../trpc/client";
 import { useSessionStore } from "../../hooks/useSession";
+import { usePathname } from "expo-router";
 
 type HouseListingProps = {
   listingId: string;
@@ -53,6 +54,7 @@ type ListingFeatureProps = {
 export default function HomeListing({ listingId }: HouseListingProps) {
   const router = useRouter();
   const { session } = useSessionStore();
+  const pathname = usePathname();
   const [showContactModal, setShowContactModal] = useState(false);
 
   const { data: listingData, isLoading } =
@@ -66,13 +68,15 @@ export default function HomeListing({ listingId }: HouseListingProps) {
       userId: session?.user?.id ?? "",
     });
 
-  console.log(isLiked);
-
   const updateListingLike = trpc.listings.updateListingLike.useMutation({
     onSuccess: () => {
       refetchIsLiked();
     },
   });
+
+  useEffect(() => {
+    refetchIsLiked();
+  }, [pathname]);
 
   if (!listingData || isLoading) {
     return null;
@@ -130,13 +134,13 @@ export default function HomeListing({ listingId }: HouseListingProps) {
             updateListingLike.mutate({
               listingId: Number(listingId),
               userId: session?.user?.id ?? "",
-              action: isLiked ? "unlike" : "like",
+              action: isLiked?.isLiked ? "unlike" : "like",
             });
           }}
           className="ml-auto p-1"
         >
           <Ionicons
-            name={isLiked ? "heart" : "heart-outline"}
+            name={isLiked?.isLiked ? "heart" : "heart-outline"}
             size={24}
             color="red"
           />
@@ -146,7 +150,7 @@ export default function HomeListing({ listingId }: HouseListingProps) {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Image Gallery */}
         <View className="py-4">
-          <ImageModal images={images} />
+          <ImageModal images={listingData?.images ?? []} />
           {/* <FlatList
             data={listing.images}
             renderItem={renderImageItem}

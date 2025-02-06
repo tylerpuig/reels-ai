@@ -15,7 +15,6 @@ export default function Auth() {
   async function createNewUser(session: Session) {
     try {
       if (!session?.user?.id) return;
-      console.log(session);
       await fetch(`${APP_URL}/newUser`, {
         method: "POST",
         headers: {

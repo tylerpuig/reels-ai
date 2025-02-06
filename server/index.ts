@@ -26,7 +26,6 @@ type NewUserRequest = {
 };
 app.post("/newUser", async (req, res) => {
   const { userId, name, email } = req.body as NewUserRequest;
-  console.log(req.body);
 
   // Basic validation
   if (!userId || !name || !email) {

@@ -73,7 +73,7 @@ export function VideoFeed() {
           flatListRef.current?.scrollToIndex({
             index,
             animated: false,
-            viewPosition: 0, //  ensures the item is aligned to the top
+            viewPosition: 0, // ensures the item is aligned to the top
           });
           setInitialVideoId(null); // Reset after scrolling
         }, 50);
@@ -252,6 +252,13 @@ const Item = ({
     </Pressable>
   );
 };
+
+// function formatUserName(name: string) {
+//   if (name.length > 5) {
+//     return `${name.slice(0, 5)}...`;
+//   }
+//   return name;
+// }
 
 const styles = StyleSheet.create({
   container: {

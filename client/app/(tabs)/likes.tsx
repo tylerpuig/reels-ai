@@ -81,7 +81,9 @@ const ListingItem = ({
       </View>
       <Text className="text-white text-lg mt-2">{item.address}</Text>
       <View className="flex-row justify-between mt-1">
-        <Text className="text-zinc-400">{item.price}</Text>
+        <Text className="text-zinc-400">
+          {"$" + item.price?.toLocaleString("en-US")}
+        </Text>
         <Text className="text-zinc-400">
           {item.beds} bed • {item.baths} bath • {item.sqft} sqft
         </Text>
