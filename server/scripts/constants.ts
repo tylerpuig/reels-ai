@@ -12,3 +12,5 @@ export const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID!;
 export const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY!;
 export const decor8ApiKey = process.env.DECOR8_API_KEY!;
 export const exampleRoomImage = process.env.EXAMPLE_ROOM_IMAGE!;
+export const databaseUrl = process.env.DATABASE_URL!;
+export const seedUserId = process.env.SEED_USER_ID!;

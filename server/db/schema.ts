@@ -8,8 +8,10 @@ import {
   primaryKey,
   index,
   vector,
+  date,
   decimal,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 // Users table
 export const usersTable = pgTable("users", {
@@ -29,13 +31,13 @@ export const listingsTable = pgTable(
     userId: varchar("user_id", { length: 255 })
       .references(() => usersTable.id, { onDelete: "cascade" })
       .notNull(),
-    price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+    price: integer("price").notNull(),
     address: varchar("address", { length: 255 }).notNull(),
     city: varchar("city", { length: 100 }).notNull(),
     state: varchar("state", { length: 2 }).notNull(),
     zip: varchar("zip", { length: 10 }).notNull(),
     beds: integer("beds").notNull(),
-    baths: decimal("baths", { precision: 3, scale: 1 }).notNull(),
+    baths: integer("baths").notNull(),
     sqft: integer("sqft").notNull(),
     description: text("description"),
     agentName: varchar("agent_name", { length: 255 }).notNull(),
@@ -43,8 +45,9 @@ export const listingsTable = pgTable(
     agentPhone: varchar("agent_phone", { length: 20 }),
     agentAgency: varchar("agent_agency", { length: 255 }),
     embedding: vector("embedding", { dimensions: 1536 }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (listings) => [
     index("listing_user_idx").on(listings.userId),
@@ -65,7 +68,9 @@ export const listingImagesTable = pgTable(
       .notNull(),
     url: varchar("url", { length: 255 }).notNull(),
     order: integer("order").default(0).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (images) => [index("listing_images_listing_idx").on(images.listingId)]
 );
@@ -86,9 +91,13 @@ export const videosTable = pgTable(
     viewCount: integer("view_count").default(0).notNull(),
     likeCount: integer("like_count").default(0).notNull(),
     commentCount: integer("comment_count").default(0).notNull(),
+    listingId: integer("listing_id")
+      .references(() => listingsTable.id, { onDelete: "cascade" })
+      .notNull(),
     embedding: vector("embedding", { dimensions: 1536 }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (videos) => [
     index("video_user_idx").on(videos.userId),
@@ -96,6 +105,52 @@ export const videosTable = pgTable(
       "hnsw",
       videos.embedding.op("vector_cosine_ops")
     ),
+  ]
+);
+export const adsTable = pgTable(
+  "ads",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: varchar("user_id", { length: 255 })
+      .references(() => usersTable.id, { onDelete: "cascade" })
+      .notNull(),
+    videoId: integer("video_id")
+      .references(() => videosTable.id, { onDelete: "cascade" })
+      .notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    description: text("description"),
+    isActive: boolean("is_active").default(true).notNull(),
+    bidAmount: decimal("bid_amount", { precision: 8, scale: 2 }).notNull(), // Cost per 1000 impressions
+    dailyBudget: decimal("daily_budget", { precision: 12, scale: 2 }).notNull(),
+    startDate: timestamp("start_date").notNull(),
+    endDate: timestamp("end_date"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (ads) => [
+    index("ads_user_idx").on(ads.userId),
+    index("ads_video_idx").on(ads.videoId),
+  ]
+);
+
+// Daily ad impressions table
+export const adDailyImpressionsTable = pgTable(
+  "ad_daily_impressions",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    adId: integer("ad_id")
+      .references(() => adsTable.id, { onDelete: "cascade" })
+      .notNull(),
+    date: date("date").notNull(),
+    impressions: integer("impressions").default(0).notNull(),
+    clicks: integer("clicks").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (impressions) => [
+    index("ad_impressions_ad_date_idx").on(impressions.adId, impressions.date),
   ]
 );
 
@@ -112,8 +167,9 @@ export const commentsTable = pgTable(
       .notNull(),
     content: text("content").notNull(),
     likeCount: integer("like_count").default(0).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (comments) => [
     index("comment_video_idx").on(comments.videoId),
@@ -131,11 +187,32 @@ export const videoLikesTable = pgTable(
     videoId: integer("video_id")
       .references(() => videosTable.id, { onDelete: "cascade" })
       .notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (videoLikes) => [
     primaryKey({ columns: [videoLikes.userId, videoLikes.videoId] }),
     index("video_likes_video_idx").on(videoLikes.videoId),
+  ]
+);
+
+export const likedListingsTable = pgTable(
+  "liked_listings",
+  {
+    userId: varchar("user_id", { length: 255 })
+      .references(() => usersTable.id, { onDelete: "cascade" })
+      .notNull(),
+    listingId: integer("listing_id")
+      .references(() => listingsTable.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (listingLikes) => [
+    primaryKey({ columns: [listingLikes.userId, listingLikes.listingId] }),
+    index("listing_likes_listing_idx").on(listingLikes.listingId),
   ]
 );
 
@@ -149,7 +226,9 @@ export const commentLikesTable = pgTable(
     commentId: integer("comment_id")
       .references(() => commentsTable.id, { onDelete: "cascade" })
       .notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (commentLikes) => [
     primaryKey({ columns: [commentLikes.userId, commentLikes.commentId] }),
@@ -171,8 +250,9 @@ export const userVideoInteractionsTable = pgTable(
     watchTime: integer("watch_time").default(0),
     watchPercentage: integer("watch_percentage").default(0),
     liked: boolean("liked").default(false),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (interactions) => [
     index("interaction_user_idx").on(interactions.userId),
