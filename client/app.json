@@ -47,9 +47,9 @@
         }
       ],
       [
-        "react-native-create-thumbnail",
+        "expo-image-picker",
         {
-          "enableCustomFormat": true
+          "photosPermission": "Allow ReelsAI to access your photos"
         }
       ]
     ],

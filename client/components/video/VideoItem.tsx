@@ -5,30 +5,15 @@ import {
   Dimensions,
   StyleSheet,
   Text,
-  ViewToken,
   TouchableOpacity,
-  Animated,
-  PanResponder,
   Pressable,
 } from "react-native";
 import { Button } from "~/components/ui/button";
-import {
-  Play,
-  Pause,
-  Heart,
-  MessageCircle,
-  Share2,
-  House,
-} from "lucide-react-native";
+import { Pause, Share2, House } from "lucide-react-native";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useVideoStore } from "./useVideoStore";
 import { useRouter } from "expo-router";
-import {
-  Video as ExpoVideo,
-  ResizeMode,
-  type AVPlaybackStatusSuccess,
-  type AVPlaybackStatus,
-} from "expo-av";
+import { Video as ExpoVideo, ResizeMode } from "expo-av";
 import { type VideoData } from "~/trpc/types";
 import { trpc } from "@/trpc/client";
 import LikeButton from "./actions/LikeButton";
@@ -38,11 +23,10 @@ import { useSessionStore } from "@/hooks/useSession";
 import { useVideoContext } from "@/hooks/useVideoContext";
 
 export function VideoFeed() {
-  const { videoPaginationSkip } = useVideoStore();
+  const { videoPaginationSkip, initialVideoId, setInitialVideoId } =
+    useVideoStore();
   const { setCurrentVideo } = useVideoContext();
-
-  // console.log("isVideoFeedPath", isVideoFeedPath);
-
+  const flatListRef = useRef<FlatList>(null);
   const { session } = useSessionStore();
   const [currentViewableItemIndex, setCurrentViewableItemIndex] = useState(0);
   const viewabilityConfig = { viewAreaCoveragePercentThreshold: 50 };
@@ -78,9 +62,20 @@ export function VideoFeed() {
     refetchVideos();
   }, [currentViewableItemIndex]);
 
+  useEffect(() => {
+    if (initialVideoId && videos) {
+      const index = videos.findIndex((video) => video.id === initialVideoId);
+      if (index !== -1) {
+        flatListRef.current?.scrollToIndex({ index, animated: false });
+        setInitialVideoId(null); // Reset after scrolling
+      }
+    }
+  }, [initialVideoId, videos]);
+
   return (
     <View style={styles.container}>
       <FlatList
+        ref={flatListRef}
         data={videos}
         renderItem={({ item, index }) => (
           <Item item={item} shouldPlay={index === currentViewableItemIndex} />
@@ -148,9 +143,6 @@ const Item = ({
           video.current?.playAsync();
           setIsPaused(false);
         }
-        // status?.isPlaying
-        //   ? video.current?.pauseAsync()
-        //   : video.current?.playAsync();
       }}
       style={styles.itemContainer}
     >

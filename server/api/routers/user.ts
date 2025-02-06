@@ -5,6 +5,7 @@ import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
 import { faker } from "@faker-js/faker";
 import { eq } from "drizzle-orm";
+import { generatePresignedUrl } from "../../integrations/s3.js";
 
 export const userRouter = createTRPCRouter({
   newUser: publicProcedure
@@ -41,5 +42,52 @@ export const userRouter = createTRPCRouter({
       } catch (error) {
         console.log(error);
       }
+    }),
+  getPresignedS3Url: protectedProcedure
+    .input(
+      z.object({
+        fileName: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const result = await generatePresignedUrl(input.fileName);
+
+      if (!result) {
+        throw new Error("Failed to generate pre-signed URL");
+      }
+
+      return { uploadUrl: result.uploadUrl, fileUrl: result.fileUrl };
+    }),
+  updateUserProfileImage: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        url: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await db
+        .update(schema.usersTable)
+        .set({
+          avatarUrl: input.url,
+        })
+        .where(eq(schema.usersTable.id, input.userId));
+    }),
+  updateUserProfile: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        name: z.string(),
+        email: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await db
+        .update(schema.usersTable)
+        .set({
+          name: input.name,
+          email: input.email,
+        })
+        .where(eq(schema.usersTable.id, input.userId));
     }),
 });

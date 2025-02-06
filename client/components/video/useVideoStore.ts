@@ -13,6 +13,8 @@ type VideoStore = {
   setSelectedVideo: (video: VideoData | null) => void;
   isShareModalVisible: boolean;
   setIsShareModalVisible: (open: boolean) => void;
+  initialVideoId: number | null;
+  setInitialVideoId: (id: number | null) => void;
 };
 
 export const useVideoStore = create<VideoStore>((set) => ({
@@ -28,4 +30,6 @@ export const useVideoStore = create<VideoStore>((set) => ({
   setSelectedVideo: (video) => set({ selectedVideo: video }),
   isShareModalVisible: false,
   setIsShareModalVisible: (open) => set({ isShareModalVisible: open }),
+  initialVideoId: null,
+  setInitialVideoId: (id) => set({ initialVideoId: id }),
 }));

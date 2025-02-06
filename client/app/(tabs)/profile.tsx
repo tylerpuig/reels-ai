@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Separator } from "~/components/ui/separator";
@@ -5,6 +6,7 @@ import { useRouter } from "expo-router";
 import { useSessionStore } from "../../hooks/useSession";
 import { supabase } from "../../lib/supabase";
 import { trpc } from "../../trpc/client";
+import { usePathname } from "expo-router";
 
 const ProfileMenuItem = ({
   label,
@@ -26,19 +28,24 @@ const ProfileMenuItem = ({
 );
 
 export default function ProfileScreen() {
+  const pathname = usePathname();
   const router = useRouter();
   const { session } = useSessionStore();
-  const { data: profileData } = trpc.user.getUserProfileData.useQuery(
-    {
+  const { data: profileData, refetch: refetchProfileData } =
+    trpc.user.getUserProfileData.useQuery({
       userId: session?.user?.id ?? "",
-    },
-    {
-      refetchOnMount: true,
-    }
-  );
+    });
+
+  useEffect(() => {
+    refetchProfileData();
+  }, [pathname]);
 
   const menuItems = [
-    { label: "Edit Profile", icon: "person-outline", route: "/edit-profile" },
+    {
+      label: "Edit Profile",
+      icon: "person-outline",
+      route: "/(modals)/editprofile",
+    },
     { label: "Manage Settings", icon: "settings-outline", route: "/settings" },
     { label: "Manage Ads", icon: "megaphone-outline", route: "/manage-ads" },
     {
@@ -70,10 +77,10 @@ export default function ProfileScreen() {
         <View className="flex-row items-center">
           <Image
             source={{ uri: profileData?.avatarUrl ?? "" }}
-            className="w-20 h-20 rounded-full mr-4"
+            className="w-28 h-28 rounded-full mr-4"
           />
           <View>
-            <Text className="text-lg font-bold text-white">
+            <Text className="text-3xl font-bold text-white">
               {profileData?.name}
             </Text>
             {/* <Text className="text-zinc-400">{session?.user?.email}</Text> */}

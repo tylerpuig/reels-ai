@@ -121,6 +121,17 @@ export default function RootLayout() {
                   gestureDirection: "horizontal",
                 }}
               />
+              <Stack.Screen
+                name="(modals)/editprofile/index"
+                options={{
+                  headerShown: false,
+                  title: "Edit Profile",
+                  presentation: "card",
+                  animation: "slide_from_right",
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                }}
+              />
             </Stack>
             <StatusBar style="auto" />
           </VideoProvider>
