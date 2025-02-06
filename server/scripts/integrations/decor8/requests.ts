@@ -3,7 +3,6 @@ import * as decor8Types from "./types.js";
 import { uploadImageToS3FromUrl } from "../../../integrations/s3.js";
 import { exampleRoomImage, decor8ApiKey } from "../../../scripts/constants.js";
 
-console.log(exampleRoomImage);
 async function removeObjectsFromPicture() {
   try {
     const payload: decor8Types.RemoveObjectRequest = {

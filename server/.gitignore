@@ -32,3 +32,4 @@ yarn-error.*
 
 app-example
 dist/
+scripts/db/videos.json
