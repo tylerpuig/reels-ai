@@ -1,156 +1,171 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
-import { type VideoData } from "~/trpc/types";
-// import { createThumbnail } from "react-native-create-thumbnail";
+import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { trpc } from "../../trpc/client";
+import { useSessionStore } from "@/hooks/useSession";
+import type { LikedVideo, LikedListing } from "~/trpc/types";
+// type VideoLike = {
+//   id: number;
+//   title: string;
+//   thumbnailUrl: string;
+//   videoUrl: string;
+// };
+
+const VideoItem = ({
+  item,
+  onUnlike,
+}: {
+  item: LikedVideo;
+  onUnlike: (id: number) => void;
+}) => (
+  <View className="p-4 border-b border-zinc-800">
+    <View className="relative">
+      <Image
+        source={{ uri: item.thumbnailUrl ?? "" }}
+        className="w-full h-48 rounded-lg bg-zinc-900"
+      />
+      <TouchableOpacity
+        onPress={() => onUnlike(item.id)}
+        className="absolute top-2 right-2 p-2"
+      >
+        <Ionicons name="heart" size={24} color="red" />
+      </TouchableOpacity>
+    </View>
+    <Text className="text-white text-lg mt-2">{item.title}</Text>
+  </View>
+);
+
+const ListingItem = ({
+  item,
+  onUnlike,
+}: {
+  item: LikedListing;
+  onUnlike: (id: number) => void;
+}) => (
+  <View className="p-4 border-b border-zinc-800">
+    <View className="relative">
+      <Image
+        source={{ uri: item?.imageUrl ?? "" }}
+        className="w-full h-48 rounded-lg bg-zinc-900"
+      />
+      <TouchableOpacity
+        onPress={() => onUnlike(item.id)}
+        className="absolute top-2 right-2 p-2"
+      >
+        <Ionicons name="heart" size={24} color="red" />
+      </TouchableOpacity>
+    </View>
+    <Text className="text-white text-lg mt-2">{item.address}</Text>
+    <View className="flex-row justify-between mt-1">
+      <Text className="text-zinc-400">{item.price}</Text>
+      <Text className="text-zinc-400">
+        {item.beds} bed • {item.baths} bath • {item.sqft} sqft
+      </Text>
+    </View>
+  </View>
+);
 
 export default function Likes() {
-  const [activeTab, setActiveTab] = useState("videos");
+  const [activeTab, setActiveTab] = useState<"videos" | "listings">("videos");
+  const { session } = useSessionStore();
 
-  // Sample data - replace with your actual data
-  const likedVideos = [
+  const {
+    data: likedVideos,
+    isLoading: isLoadingVideos,
+    refetch: refetchVideos,
+  } = trpc.videos.getLikedVideos.useQuery(
     {
-      id: 1,
-      title: "Amazing Video",
-      videoUrl: "https://example.com/video1.mp4",
-      thumbnail: "https://example.com/thumb1.jpg",
+      userId: session?.user?.id ?? "",
     },
-    // Add more videos...
-  ];
-
-  const likedPosts = [
     {
-      id: 1,
-      title: "Interesting Post",
-      content: "This is a great post!",
-      image: "https://example.com/image1.jpg",
-    },
-    // Add more posts...
-  ];
-
-  const renderVideoItem = ({ item }: { item: VideoData }) => (
-    <View style={styles.itemContainer}>
-      <Image
-        source={{ uri: item.thumbnailUrl ?? "" }}
-        style={styles.thumbnail}
-        resizeMode="cover"
-      />
-      <Text style={styles.itemTitle}>{item.title}</Text>
-    </View>
+      enabled: activeTab === "videos",
+      refetchOnMount: true,
+    }
   );
 
-  const renderPostItem = ({ item }: { item: VideoData }) => (
-    <View style={styles.itemContainer}>
-      <Image
-        source={{ uri: item.thumbnailUrl ?? "" }}
-        style={styles.thumbnail}
-        resizeMode="cover"
-      />
-      <View style={styles.postContent}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={styles.postText}>{item.description}</Text>
-      </View>
-    </View>
-  );
+  const { data: likedListings, isLoading: isLoadingListings } =
+    trpc.listings.getLikedListings.useQuery(
+      {
+        userId: session?.user?.id ?? "",
+      },
+      {
+        enabled: activeTab === "listings",
+        refetchOnMount: true,
+      }
+    );
+
+  console.log("activeTab", activeTab);
+  console.log(likedListings);
+
+  const unlikeVideo = trpc.videos.unLikeVideo.useMutation({
+    onSuccess: () => {
+      refetchVideos();
+    },
+  });
+
+  const handleUnlikeVideo = (id: number) => {
+    // Implement unlike video logic
+    unlikeVideo.mutate({
+      videoId: id,
+      userId: session?.user?.id ?? "",
+    });
+  };
+
+  const handleUnlikeListing = (id: number) => {
+    // Implement unlike listing logic
+    console.log("Unlike listing:", id);
+  };
 
   return (
-    <View style={styles.container} className="pt-14">
-      <View style={styles.tabContainer}>
+    <View className="flex-1 bg-[#121212] pt-16">
+      <View className="flex-row border-b border-zinc-800">
         <TouchableOpacity
-          style={[styles.tab, activeTab === "videos" && styles.activeTab]}
+          className={`flex-1 py-4 items-center ${
+            activeTab === "videos" ? "border-b-2 border-white" : ""
+          }`}
           onPress={() => setActiveTab("videos")}
         >
           <Text
-            style={[
-              styles.tabText,
-              activeTab === "videos" && styles.activeTabText,
-            ]}
+            className={`text-base ${
+              activeTab === "videos" ? "text-white" : "text-zinc-500"
+            }`}
           >
             Videos
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === "posts" && styles.activeTab]}
-          onPress={() => setActiveTab("posts")}
+          className={`flex-1 py-4 items-center ${
+            activeTab === "listings" ? "border-b-2 border-white" : ""
+          }`}
+          onPress={() => setActiveTab("listings")}
         >
           <Text
-            style={[
-              styles.tabText,
-              activeTab === "posts" && styles.activeTabText,
-            ]}
+            className={`text-base ${
+              activeTab === "listings" ? "text-white" : "text-zinc-500"
+            }`}
           >
             Homes
           </Text>
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={activeTab === "videos" ? (likedVideos as any) : likedPosts}
-        renderItem={activeTab === "videos" ? renderVideoItem : renderPostItem}
-        keyExtractor={(item) => item.id.toString()}
-        style={styles.list}
-      />
+      {activeTab === "videos" ? (
+        <FlatList
+          data={likedVideos ?? []} // Add your video data here
+          renderItem={({ item }) => (
+            <VideoItem item={item} onUnlike={handleUnlikeVideo} />
+          )}
+          keyExtractor={(item) => item.id.toString()}
+        />
+      ) : (
+        <FlatList
+          data={likedListings ?? []} // Add your listing data here
+          renderItem={({ item }) => (
+            <ListingItem item={item} onUnlike={handleUnlikeListing} />
+          )}
+          keyExtractor={(item) => item.id.toString()}
+        />
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-  tabContainer: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: "#fff",
-  },
-  tabText: {
-    color: "#888",
-    fontSize: 16,
-  },
-  activeTabText: {
-    color: "#fff",
-  },
-  list: {
-    flex: 1,
-  },
-  itemContainer: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
-  },
-  thumbnail: {
-    width: "100%",
-    height: 200,
-    borderRadius: 8,
-    backgroundColor: "#2a2a2a",
-  },
-  itemTitle: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 8,
-  },
-  postContent: {
-    marginTop: 8,
-  },
-  postText: {
-    color: "#888",
-    marginTop: 4,
-  },
-});

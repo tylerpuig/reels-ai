@@ -3,7 +3,7 @@ import { z } from "zod";
 import { protectedProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
-import { and, eq, sql, desc } from "drizzle-orm";
+import { and, eq, sql, desc, asc } from "drizzle-orm";
 import { generatePresignedUrl } from "../../integrations/s3.js";
 
 export const videosRouter = createTRPCRouter({
@@ -184,6 +184,7 @@ export const videosRouter = createTRPCRouter({
         await db.insert(schema.videosTable).values([
           {
             userId: input.userId,
+            listingId: 0,
             title: input.fileName,
             description: "",
             videoUrl: input.url,
@@ -192,5 +193,44 @@ export const videosRouter = createTRPCRouter({
       } catch (error) {
         console.log(error);
       }
+    }),
+  getLikedVideos: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input }) => {
+      const results = await db
+        .select({
+          id: schema.videosTable.id,
+          title: schema.videosTable.title,
+          videoUrl: schema.videosTable.videoUrl,
+          thumbnailUrl: schema.videosTable.thumbnailUrl,
+        })
+        .from(schema.videoLikesTable)
+        .where(eq(schema.videoLikesTable.userId, input.userId))
+        .innerJoin(
+          schema.videosTable,
+          eq(schema.videosTable.id, schema.videoLikesTable.videoId)
+        )
+        .orderBy(desc(schema.videoLikesTable.createdAt))
+        .limit(10);
+
+      return results;
+    }),
+  unLikeVideo: protectedProcedure
+    .input(
+      z.object({
+        videoId: z.number(),
+        userId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await db
+        .delete(schema.videoLikesTable)
+        .where(eq(schema.videoLikesTable.userId, input.userId));
+
+      // decrement the like count for the video
+      await db
+        .update(schema.videosTable)
+        .set({ likeCount: sql`${schema.videosTable.likeCount} - 1` })
+        .where(eq(schema.videosTable.id, input.videoId));
     }),
 });

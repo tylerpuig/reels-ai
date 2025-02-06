@@ -3,7 +3,7 @@ import { z } from "zod";
 import { protectedProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export const listingsRouter = createTRPCRouter({
   getListingDetails: protectedProcedure
@@ -93,5 +93,46 @@ export const listingsRouter = createTRPCRouter({
           .delete(schema.likedListingsTable)
           .where(eq(schema.likedListingsTable.userId, input.userId));
       }
+    }),
+  unLikeListing: protectedProcedure
+    .input(
+      z.object({
+        listingId: z.number(),
+        userId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await db
+        .delete(schema.likedListingsTable)
+        .where(eq(schema.likedListingsTable.userId, input.userId));
+    }),
+  getLikedListings: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input }) => {
+      const results = await db
+        .select({
+          id: schema.listingsTable.id,
+          address: schema.listingsTable.address,
+          price: schema.listingsTable.price,
+          beds: schema.listingsTable.beds,
+          baths: schema.listingsTable.baths,
+          sqft: schema.listingsTable.sqft,
+          imageUrl: sql<string>`(
+      SELECT url 
+      FROM ${schema.listingImagesTable} 
+      WHERE listing_id = ${schema.listingsTable.id} 
+      LIMIT 1
+    )`.as("image_url"),
+        })
+        .from(schema.likedListingsTable)
+        .where(eq(schema.likedListingsTable.userId, input.userId))
+        .innerJoin(
+          schema.listingsTable,
+          eq(schema.listingsTable.id, schema.likedListingsTable.listingId)
+        )
+        .orderBy(desc(schema.likedListingsTable.createdAt))
+        .limit(10);
+
+      return results;
     }),
 });

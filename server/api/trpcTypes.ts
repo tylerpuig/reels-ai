@@ -7,3 +7,9 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 export type VideoData = NonNullable<
   RouterOutputs["videos"]["getVideos"][number]
 >;
+export type LikedVideo = NonNullable<
+  RouterOutputs["videos"]["getLikedVideos"][number]
+>;
+export type LikedListing = NonNullable<
+  RouterOutputs["listings"]["getLikedListings"][number]
+>;

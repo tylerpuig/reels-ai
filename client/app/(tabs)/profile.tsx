@@ -37,8 +37,6 @@ export default function ProfileScreen() {
     }
   );
 
-  console.log(profileData);
-
   const menuItems = [
     { label: "Edit Profile", icon: "person-outline", route: "/edit-profile" },
     { label: "Manage Settings", icon: "settings-outline", route: "/settings" },

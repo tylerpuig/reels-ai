@@ -33,12 +33,15 @@ import { type VideoData } from "~/trpc/types";
 import { trpc } from "@/trpc/client";
 import LikeButton from "./actions/LikeButton";
 import VideoComments from "./actions/VideoComments";
+import { usePathname } from "expo-router";
 import { useSessionStore } from "@/hooks/useSession";
 import { useVideoContext } from "@/hooks/useVideoContext";
 
 export function VideoFeed() {
   const { videoPaginationSkip } = useVideoStore();
   const { setCurrentVideo } = useVideoContext();
+
+  // console.log("isVideoFeedPath", isVideoFeedPath);
 
   const { session } = useSessionStore();
   const [currentViewableItemIndex, setCurrentViewableItemIndex] = useState(0);
@@ -106,9 +109,11 @@ const Item = ({
   const router = useRouter();
   const video = React.useRef<ExpoVideo | null>(null);
   const [status, setStatus] = useState<any>(null);
-  // const [playbackStatus, setPlaybackStatus] = useState<AVPlaybackStatus | null>(
-  //   null
-  // );
+  const [isPaused, setIsPaused] = useState(false);
+
+  const pathname = usePathname();
+  const isVideoFeedPath = pathname === "/";
+
   const { setIsShareModalVisible } = useVideoStore();
   const { currentVideo, setCurrentVideo } = useVideoContext();
 
@@ -117,18 +122,35 @@ const Item = ({
 
     if (shouldPlay) {
       video.current.playAsync();
+      setIsPaused(false);
     } else {
       video.current.pauseAsync();
       video.current.setPositionAsync(0);
+      setIsPaused(true);
     }
   }, [shouldPlay]);
+
+  useEffect(() => {
+    if (!isVideoFeedPath) {
+      video?.current?.pauseAsync();
+      setIsPaused(true);
+    }
+  }, [isVideoFeedPath]);
 
   return (
     <Pressable
       onPress={() => {
-        status?.isPlaying
-          ? video.current?.pauseAsync()
-          : video.current?.playAsync();
+        const isPlaying = status?.isPlaying;
+        if (isPlaying) {
+          video.current?.pauseAsync();
+          setIsPaused(true);
+        } else {
+          video.current?.playAsync();
+          setIsPaused(false);
+        }
+        // status?.isPlaying
+        //   ? video.current?.pauseAsync()
+        //   : video.current?.playAsync();
       }}
       style={styles.itemContainer}
     >
@@ -141,7 +163,19 @@ const Item = ({
           resizeMode={ResizeMode.COVER}
           useNativeControls={false}
           onPlaybackStatusUpdate={(status) => setStatus(() => status)}
+          onLoad={() => {
+            if (shouldPlay) {
+              video.current?.playAsync();
+              // setIsPaused(false);
+            }
+          }}
         />
+        {!status?.isPlaying && isPaused && shouldPlay && (
+          <View style={styles.pauseIconContainer}>
+            <Pause size={40} color="white" />
+          </View>
+        )}
+
         <TouchableOpacity
           style={styles.detailsContainer}
           onPress={() => {
@@ -271,5 +305,17 @@ const styles = StyleSheet.create({
   descriptionText: {
     color: "white",
     fontSize: 14,
+  },
+  pauseIconContainer: {
+    position: "absolute",
+    top: Dimensions.get("window").height / 2 - 70, // 35 = (circle size / 2)
+    left: Dimensions.get("window").width / 2 - 35,
+    width: 70, // Circle size
+    height: 70, // Circle size
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    borderRadius: 35, // Half of width/height to make it circular
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 30,
   },
 });
