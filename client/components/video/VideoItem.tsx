@@ -68,8 +68,15 @@ export function VideoFeed() {
     if (initialVideoId && videos) {
       const index = videos.findIndex((video) => video.id === initialVideoId);
       if (index !== -1) {
-        flatListRef.current?.scrollToIndex({ index, animated: false });
-        setInitialVideoId(null); // Reset after scrolling
+        // Add a small delay to ensure FlatList is ready
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index,
+            animated: false,
+            viewPosition: 0, //  ensures the item is aligned to the top
+          });
+          setInitialVideoId(null); // Reset after scrolling
+        }, 50);
       }
     }
   }, [initialVideoId, videos]);
@@ -193,7 +200,7 @@ const Item = ({
             onPress={() => {
               router.push({
                 pathname: "/(modals)/viewprofile/[id]",
-                params: { id: "1" },
+                params: { id: item.userId },
               });
             }}
             style={{ alignItems: "center" }}

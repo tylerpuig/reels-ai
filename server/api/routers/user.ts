@@ -4,7 +4,7 @@ import { protectedProcedure, publicProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
 import { faker } from "@faker-js/faker";
-import { eq } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { generatePresignedUrl } from "../../integrations/s3.js";
 
 export const userRouter = createTRPCRouter({
@@ -89,5 +89,31 @@ export const userRouter = createTRPCRouter({
           email: input.email,
         })
         .where(eq(schema.usersTable.id, input.userId));
+    }),
+  getPublicProfileData: protectedProcedure
+    .input(z.object({ profileId: z.string() }))
+    .query(async ({ input }) => {
+      const userData = await db.query.usersTable.findFirst({
+        where: eq(schema.usersTable.id, input.profileId),
+        columns: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+        },
+      });
+
+      const userVideos = await db
+        .select({
+          id: schema.videosTable.id,
+          title: schema.videosTable.title,
+          videoUrl: schema.videosTable.videoUrl,
+          thumbnailUrl: schema.videosTable.thumbnailUrl,
+        })
+        .from(schema.videosTable)
+        .where(eq(schema.videosTable.userId, input.profileId))
+        .orderBy(desc(schema.videosTable.createdAt))
+        .limit(10);
+
+      return { profile: userData, videos: userVideos };
     }),
 });

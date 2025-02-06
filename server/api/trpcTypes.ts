@@ -13,3 +13,7 @@ export type LikedVideo = NonNullable<
 export type LikedListing = NonNullable<
   RouterOutputs["listings"]["getLikedListings"][number]
 >;
+
+export type PublicProfileData = NonNullable<
+  RouterOutputs["user"]["getPublicProfileData"]
+>;

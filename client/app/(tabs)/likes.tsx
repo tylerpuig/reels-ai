@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-  FlatList,
-} from "react-native";
+import { View, Text, TouchableOpacity, Image, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
@@ -165,7 +158,7 @@ export default function Likes() {
           onPress={() => setActiveTab("videos")}
         >
           <Text
-            className={`text-base ${
+            className={`text-xl ${
               activeTab === "videos" ? "text-white" : "text-zinc-500"
             }`}
           >
@@ -179,7 +172,7 @@ export default function Likes() {
           onPress={() => setActiveTab("listings")}
         >
           <Text
-            className={`text-base ${
+            className={`text-xl ${
               activeTab === "listings" ? "text-white" : "text-zinc-500"
             }`}
           >
