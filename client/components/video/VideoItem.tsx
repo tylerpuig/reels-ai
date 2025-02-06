@@ -142,6 +142,23 @@ const Item = ({
           useNativeControls={false}
           onPlaybackStatusUpdate={(status) => setStatus(() => status)}
         />
+        <TouchableOpacity
+          style={styles.detailsContainer}
+          onPress={() => {
+            if (video.current) {
+              video.current.pauseAsync();
+            }
+            router.push({
+              pathname: "/(modals)/listing/[id]",
+              params: { id: item.listingId },
+            });
+          }}
+        >
+          <View style={styles.detailsOverlay}>
+            <Text style={styles.titleText}>{item.title}</Text>
+            <Text style={styles.descriptionText}>{item.description}</Text>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -154,12 +171,12 @@ const Item = ({
             style={{ alignItems: "center" }}
           >
             <Avatar alt="Zach Nugent's Avatar">
-              <AvatarImage source={{ uri: "" }} />
+              <AvatarImage source={{ uri: item.userImage ?? "" }} />
               <AvatarFallback>
-                <Text>ZN</Text>
+                <Text>{"ZN"}</Text>
               </AvatarFallback>
             </Avatar>
-            <Text style={styles.buttonText}>Profile</Text>
+            <Text style={styles.buttonText}>{item.userName ?? "Profile"}</Text>
           </TouchableOpacity>
           <LikeButton
             setVideoState={setCurrentVideo}
@@ -222,7 +239,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "white",
-    fontSize: 12,
+    fontSize: 16,
     marginTop: 4,
   },
   buttonContainer: {
@@ -232,5 +249,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
     zIndex: 10,
+  },
+  detailsContainer: {
+    position: "absolute",
+    bottom: 160,
+    left: 16,
+    right: 100,
+    zIndex: 10,
+  },
+  detailsOverlay: {
+    // backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 12,
+    borderRadius: 8,
+  },
+  titleText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  descriptionText: {
+    color: "white",
+    fontSize: 14,
   },
 });

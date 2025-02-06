@@ -13,9 +13,24 @@ import { useRouter } from "expo-router";
 import { Linking, Platform } from "react-native";
 import ContactModal from "../realestate/ContactAgentModal";
 import ImageModal from "../realestate/ImageModal";
+import { trpc } from "../../trpc/client";
+import { useSessionStore } from "../../hooks/useSession";
 
-interface HouseListingProps {
+type HouseListingProps = {
   listingId: string;
+};
+
+function formatPhoneNumber(phonNumber: string): string {
+  try {
+    if (!phonNumber) return "";
+    const cleaned = phonNumber.toString().replace(/\D/g, "");
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
+    }
+    return phonNumber;
+  } catch (_) {}
+  return "";
 }
 
 const images: { id: string; uri: string }[] = [
@@ -37,31 +52,6 @@ const images: { id: string; uri: string }[] = [
   },
 ];
 
-const listing = {
-  price: "$849,000",
-  address: "123 Maple Street",
-  city: "Beverly Hills",
-  state: "CA",
-  zip: "90210",
-  beds: 4,
-  baths: 3,
-  sqft: "2,450",
-  description:
-    "Stunning modern home featuring an open concept living space, gourmet kitchen with premium appliances, and a spacious primary suite. The backyard offers a peaceful retreat with mature landscaping and a covered patio perfect for entertaining.",
-  agent: {
-    name: "Sarah Johnson",
-    photo: "https://placekitten.com/200/200",
-    phone: "(555) 123-4567",
-    agency: "Luxury Real Estate Group",
-  },
-  images: images.map((el) => {
-    return {
-      id: el,
-      uri: el,
-    };
-  }),
-};
-
 type ListingFeatureProps = {
   icon: string;
   label: string;
@@ -70,7 +60,31 @@ type ListingFeatureProps = {
 
 export default function HomeListing({ listingId }: HouseListingProps) {
   const router = useRouter();
+  const { session } = useSessionStore();
   const [showContactModal, setShowContactModal] = useState(false);
+
+  const { data: listingData, isLoading } =
+    trpc.listings.getListingDetails.useQuery({
+      listingId: Number(listingId),
+    });
+
+  const { data: isLiked, refetch: refetchIsLiked } =
+    trpc.listings.isListingLikedByUser.useQuery({
+      listingId: Number(listingId),
+      userId: session?.user?.id ?? "",
+    });
+
+  console.log(isLiked);
+
+  const updateListingLike = trpc.listings.updateListingLike.useMutation({
+    onSuccess: () => {
+      refetchIsLiked();
+    },
+  });
+
+  if (!listingData || isLoading) {
+    return null;
+  }
 
   const makePhoneCall = (phoneNumber: string) => {
     try {
@@ -119,8 +133,21 @@ export default function HomeListing({ listingId }: HouseListingProps) {
         <Text className="text-lg font-semibold ml-4 text-white">
           Property Details
         </Text>
-        <TouchableOpacity className="ml-auto p-1">
-          <Ionicons name="heart-outline" size={24} color="white" />
+        <TouchableOpacity
+          onPress={() => {
+            updateListingLike.mutate({
+              listingId: Number(listingId),
+              userId: session?.user?.id ?? "",
+              action: isLiked ? "unlike" : "like",
+            });
+          }}
+          className="ml-auto p-1"
+        >
+          <Ionicons
+            name={isLiked ? "heart" : "heart-outline"}
+            size={24}
+            color="red"
+          />
         </TouchableOpacity>
       </View>
 
@@ -142,21 +169,36 @@ export default function HomeListing({ listingId }: HouseListingProps) {
         {/* Price and Address */}
         <View className="px-5 pb-4">
           <Text className="text-3xl font-bold text-white mb-2">
-            {listing.price}
+            {listingData?.listing.price}
           </Text>
-          <Text className="text-lg text-white mb-1">{listing.address}</Text>
+          <Text className="text-lg text-white mb-1">
+            {listingData?.listing.address}
+          </Text>
           <Text className="text-base text-zinc-400">
-            {listing.city}, {listing.state} {listing.zip}
+            {listingData?.listing.city}, {listingData?.listing.state}{" "}
+            {listingData?.listing.zip}
           </Text>
         </View>
 
         {/* Features */}
         <View className="flex-row justify-between items-center mx-5 py-4 px-5 bg-zinc-900 rounded-xl mb-4">
-          <Feature icon="bed-outline" value={listing.beds} label="Beds" />
+          <Feature
+            icon="bed-outline"
+            value={listingData?.listing.beds}
+            label="Beds"
+          />
           <View className="w-px h-8 bg-zinc-800" />
-          <Feature icon="water-outline" value={listing.baths} label="Baths" />
+          <Feature
+            icon="water-outline"
+            value={listingData?.listing.baths}
+            label="Baths"
+          />
           <View className="w-px h-8 bg-zinc-800" />
-          <Feature icon="square-outline" value={listing.sqft} label="Sq Ft" />
+          <Feature
+            icon="square-outline"
+            value={listingData?.listing.sqft}
+            label="Sq Ft"
+          />
         </View>
 
         {/* Description */}
@@ -165,7 +207,7 @@ export default function HomeListing({ listingId }: HouseListingProps) {
             About This Home
           </Text>
           <Text className="text-base text-zinc-400 leading-6">
-            {listing.description}
+            {listingData?.listing.description}
           </Text>
         </View>
 
@@ -176,23 +218,23 @@ export default function HomeListing({ listingId }: HouseListingProps) {
           </Text>
           <View className="flex-row items-center">
             <Image
-              source={{ uri: listing.agent.photo }}
+              source={{ uri: listingData?.user?.avatarUrl ?? "" }}
               className="w-16 h-16 rounded-full mr-4"
             />
             <View className="flex-1">
               <Text className="text-lg font-bold text-white mb-1">
-                {listing.agent.name}
+                {listingData?.user?.name ?? ""}
               </Text>
               <Text className="text-sm text-zinc-400 mb-1">
-                {listing.agent.agency}
+                {listingData?.listing?.agentAgency ?? ""}
               </Text>
               <Text className="text-sm text-zinc-400">
-                {listing.agent.phone}
+                {formatPhoneNumber(listingData?.listing.agentPhone ?? "")}
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => {
-                makePhoneCall(listing.agent.phone);
+                makePhoneCall(listingData?.listing.agentPhone ?? "");
               }}
               className="bg-white rounded-full p-3"
             >
@@ -219,8 +261,8 @@ export default function HomeListing({ listingId }: HouseListingProps) {
       <ContactModal
         visible={showContactModal}
         onClose={() => setShowContactModal(false)}
-        agentName={listing.agent.name}
-        propertyAddress={listing.address}
+        agentName={listingData?.listing?.agentName ?? ""}
+        propertyAddress={listingData?.listing?.address ?? ""}
       />
     </View>
   );

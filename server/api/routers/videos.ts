@@ -23,11 +23,22 @@ export const videosRouter = createTRPCRouter({
             likeCount: schema.videosTable.likeCount,
             commentCount: schema.videosTable.commentCount,
             createdAt: schema.videosTable.createdAt,
-            updatedAt: schema.videosTable.updatedAt,
+            userId: schema.videosTable.userId,
+            userImage: schema.usersTable.avatarUrl,
+            userName: schema.usersTable.name,
+            listingId: schema.videosTable.listingId,
             // Add a boolean field that will be true if the user has liked the video
             hasLiked: sql`CASE WHEN ${schema.videoLikesTable.userId} IS NOT NULL THEN true ELSE false END`,
           })
           .from(schema.videosTable)
+          .leftJoin(
+            schema.usersTable,
+            eq(schema.videosTable.userId, schema.usersTable.id)
+          )
+          .leftJoin(
+            schema.listingsTable,
+            eq(schema.videosTable.listingId, schema.listingsTable.id)
+          )
           .leftJoin(
             schema.videoLikesTable,
             and(
@@ -38,7 +49,7 @@ export const videosRouter = createTRPCRouter({
           .orderBy(desc(schema.videosTable.createdAt))
           .offset(input.skip);
 
-        // console.log(videos);
+        console.log(videos);
 
         return videos;
       } catch (error) {

@@ -74,6 +74,7 @@ async function seedDB() {
       video.userId = seedUserId;
       video.listingId = newListing.id;
       await db.insert(schema.videosTable).values(video);
+      imgIndexCounter++;
     }
   } catch (err) {
     console.log(err);
