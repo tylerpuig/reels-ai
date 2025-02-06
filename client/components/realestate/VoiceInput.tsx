@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 // import Voice from "@react-native-voice/voice";
@@ -9,12 +9,12 @@ type VoiceInputProps = {
   placeholder: string;
   style?: any;
 };
-const VoiceInput = ({
+export default function VoiceInput({
   value,
   onChangeText,
   placeholder,
   style,
-}: VoiceInputProps) => {
+}: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
 
   //   useEffect(() => {
@@ -86,7 +86,7 @@ const VoiceInput = ({
       </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -117,5 +117,3 @@ const styles = StyleSheet.create({
     backgroundColor: "#ff4444",
   },
 });
-
-export default VoiceInput;

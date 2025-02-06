@@ -9,7 +9,7 @@ import { generatePresignedUrl } from "../../integrations/s3.js";
 export const videosRouter = createTRPCRouter({
   getVideos: protectedProcedure
     .input(z.object({ skip: z.number(), userId: z.string() }))
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       try {
         const videos = await db
           .select({
