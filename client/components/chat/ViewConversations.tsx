@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
 import { type ConversationData } from "../../trpc/types";
@@ -84,16 +84,18 @@ export function ConversationList({
 
 export function ViewConversationList() {
   const router = useRouter();
+  const pathname = usePathname();
   const { session } = useSessionStore();
   const { data: conversations, refetch: refetchConversations } =
     trpc.chat.getUserConversations.useQuery({
       userId: session?.user?.id ?? "",
     });
 
-  console.log(conversations);
+  useEffect(() => {
+    refetchConversations();
+  }, [pathname]);
 
   const handleConversationPress = (conversation: ConversationData) => {
-    console.log("Conversation pressed:", conversation);
     router.push({
       pathname: "/(modals)/chat/[id]",
       params: {

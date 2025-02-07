@@ -123,7 +123,9 @@ export default function ContactModal({
               <Text className="text-zinc-400 mt-1">
                 Sending message to {agentName}
               </Text>
-              <Text className="text-zinc-400">regarding {propertyAddress}</Text>
+              <Text className="text-zinc-400">
+                {propertyAddress ? "regarding" : ""} {propertyAddress}
+              </Text>
             </View>
 
             <ScrollView className="p-4">

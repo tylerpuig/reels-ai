@@ -1,16 +1,22 @@
+import { useState } from "react";
 import { View, Text, Image, FlatList, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { trpc } from "../../trpc/client";
 import { type PublicProfileData } from "../../trpc/types";
 import { useVideoStore } from "../video/useVideoStore";
+import ContactModal from "../realestate/ContactAgentModal";
+import { Button } from "~/components/ui/button";
+import { useSessionStore } from "@/hooks/useSession";
 
 export default function ProfileView({ userId }: { userId: string }) {
   const router = useRouter();
+  const [showContactModal, setShowContactModal] = useState(false);
   const { setInitialVideoId } = useVideoStore();
   const { data: profileData } = trpc.user.getPublicProfileData.useQuery({
     profileId: userId,
   });
+  const { session } = useSessionStore();
 
   const renderVideoItem = ({
     item,
@@ -102,6 +108,15 @@ export default function ProfileView({ userId }: { userId: string }) {
             <Text className="text-xs text-zinc-400">Views</Text>
           </View>
         </View>
+        {session?.user?.id !== userId && (
+          <Button
+            onPress={() => setShowContactModal(true)}
+            className="mt-4"
+            variant="outline"
+          >
+            <Text>Contact</Text>
+          </Button>
+        )}
       </View>
 
       {/* Videos Section */}
@@ -118,6 +133,14 @@ export default function ProfileView({ userId }: { userId: string }) {
           className="px-0.5"
         />
       </View>
+      <ContactModal
+        listingId={0}
+        agentId={profileData?.profile?.id ?? ""}
+        visible={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        agentName={profileData?.profile?.name ?? ""}
+        propertyAddress={""}
+      />
     </View>
   );
 }

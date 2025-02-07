@@ -16,6 +16,7 @@ import { useRouter } from "expo-router";
 import { type ConversationMessage } from "../../trpc/types";
 import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
+import { makePhoneCall } from "../../components/realestate/Listing";
 
 type ChatProps = {
   conversationId: number;
@@ -128,7 +129,7 @@ export default function Chat({
       className="flex-1 bg-[#0a0a0a] pt-12"
     >
       {/* Header */}
-      <View className="flex-row items-center pt-12 px-5 pb-3 border-b border-zinc-800">
+      <View className="flex-row items-center pt-6 px-5 pb-3 border-b border-zinc-800">
         <TouchableOpacity
           className="p-1 z-10"
           onPress={() => {
@@ -153,7 +154,9 @@ export default function Chat({
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => {}}
+          onPress={() => {
+            makePhoneCall("+12345678901");
+          }}
           className="w-10 h-10 bg-zinc-900 rounded-full items-center justify-center"
         >
           <Ionicons name="call-outline" size={20} color="white" />

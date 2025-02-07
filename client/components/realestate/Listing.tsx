@@ -9,6 +9,35 @@ import { trpc } from "../../trpc/client";
 import { useSessionStore } from "../../hooks/useSession";
 import { usePathname } from "expo-router";
 
+export const makePhoneCall = (phoneNumber: string) => {
+  try {
+    // Remove any non-numeric characters from the phone number
+    const cleanNumber = phoneNumber.replace(/[^\d]/g, "");
+
+    // Create the phone URL scheme
+    const url = Platform.select({
+      ios: `telprompt:${cleanNumber}`,
+      android: `tel:${cleanNumber}`,
+    });
+
+    if (!url) return;
+
+    // Check if the device can handle the phone URL scheme
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (!supported) {
+          console.log("Phone number is not available");
+          // Handle the case where phone calls aren't supported
+        } else {
+          return Linking.openURL(url);
+        }
+      })
+      .catch((err) => console.log(err));
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 type HouseListingProps = {
   listingId: string;
 };
@@ -62,35 +91,6 @@ export default function HomeListing({ listingId }: HouseListingProps) {
   if (!listingData || isLoading) {
     return null;
   }
-
-  const makePhoneCall = (phoneNumber: string) => {
-    try {
-      // Remove any non-numeric characters from the phone number
-      const cleanNumber = phoneNumber.replace(/[^\d]/g, "");
-
-      // Create the phone URL scheme
-      const url = Platform.select({
-        ios: `telprompt:${cleanNumber}`,
-        android: `tel:${cleanNumber}`,
-      });
-
-      if (!url) return;
-
-      // Check if the device can handle the phone URL scheme
-      Linking.canOpenURL(url)
-        .then((supported) => {
-          if (!supported) {
-            console.log("Phone number is not available");
-            // Handle the case where phone calls aren't supported
-          } else {
-            return Linking.openURL(url);
-          }
-        })
-        .catch((err) => console.log(err));
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   const Feature = ({ value, label }: ListingFeatureProps) => (
     <View className="items-center flex-1">

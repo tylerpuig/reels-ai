@@ -57,7 +57,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="conversations"
         options={{
-          title: "Conversations",
+          title: "Messages",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="message.fill" color={color} />
           ),
