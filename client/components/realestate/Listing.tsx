@@ -236,6 +236,8 @@ export default function HomeListing({ listingId }: HouseListingProps) {
       </View>
 
       <ContactModal
+        agentId={listingData?.user?.id ?? ""}
+        listingId={Number(listingId)}
         visible={showContactModal}
         onClose={() => setShowContactModal(false)}
         agentName={listingData?.listing?.agentName ?? ""}

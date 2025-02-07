@@ -17,3 +17,10 @@ export type LikedListing = NonNullable<
 export type PublicProfileData = NonNullable<
   RouterOutputs["user"]["getPublicProfileData"]
 >;
+
+export type ConversationData = NonNullable<
+  RouterOutputs["chat"]["getUserConversations"][number]
+>;
+export type ConversationMessage = NonNullable<
+  RouterOutputs["chat"]["getConversationMessages"][number]
+>;
