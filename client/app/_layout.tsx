@@ -132,6 +132,17 @@ export default function RootLayout() {
                   gestureDirection: "horizontal",
                 }}
               />
+              <Stack.Screen
+                name="(modals)/chat/index"
+                options={{
+                  headerShown: false,
+                  title: "Chat",
+                  presentation: "card",
+                  animation: "slide_from_right",
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                }}
+              />
             </Stack>
             <StatusBar style="auto" />
           </VideoProvider>

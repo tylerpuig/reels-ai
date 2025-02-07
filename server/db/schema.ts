@@ -259,3 +259,63 @@ export const userVideoInteractionsTable = pgTable(
     index("interaction_video_idx").on(interactions.videoId),
   ]
 );
+
+export const conversationsTable = pgTable(
+  "conversations",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    // The user who initiated the conversation
+    initiatorId: varchar("initiator_id", { length: 255 })
+      .references(() => usersTable.id, { onDelete: "cascade" })
+      .notNull(),
+    // The user receiving the conversation (e.g., the agent)
+    recipientId: varchar("recipient_id", { length: 255 })
+      .references(() => usersTable.id, { onDelete: "cascade" })
+      .notNull(),
+    // Optional reference to a listing if the conversation is about a specific property
+    listingId: integer("listing_id").references(() => listingsTable.id, {
+      onDelete: "cascade",
+    }),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (conversations) => [
+    index("conversation_initiator_idx").on(conversations.initiatorId),
+    index("conversation_recipient_idx").on(conversations.recipientId),
+    index("conversation_listing_idx").on(conversations.listingId),
+    // Index for ordering conversations by latest message
+    index("conversation_last_message_idx").on(conversations.lastMessageAt),
+  ]
+);
+
+// Messages table
+export const messagesTable = pgTable(
+  "messages",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    conversationId: integer("conversation_id")
+      .references(() => conversationsTable.id, { onDelete: "cascade" })
+      .notNull(),
+    senderId: varchar("sender_id", { length: 255 })
+      .references(() => usersTable.id, { onDelete: "cascade" })
+      .notNull(),
+    content: text("content").notNull(),
+    read: boolean("read").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (messages) => [
+    index("message_conversation_idx").on(messages.conversationId),
+    index("message_sender_idx").on(messages.senderId),
+    // Index for ordering messages within a conversation
+    index("message_conversation_time_idx").on(
+      messages.conversationId,
+      messages.createdAt
+    ),
+  ]
+);

@@ -66,6 +66,11 @@ export default function ProfileScreen() {
     },
     { label: "Payment Methods", icon: "card-outline", route: "/payments" },
     { label: "Help & Support", icon: "help-circle-outline", route: "/support" },
+    {
+      label: "Chat",
+      icon: "help-circle-outline",
+      route: "/(modals)/chat",
+    },
   ];
 
   return (
