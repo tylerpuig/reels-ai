@@ -48,9 +48,7 @@ export function VideoFeed() {
         userId: session?.user?.id ?? "",
       },
       {
-        refetchOnMount: true,
-        staleTime: 0,
-        cacheTime: 0,
+        enabled: pathname === "/",
       }
     );
 

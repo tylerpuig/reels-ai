@@ -192,13 +192,13 @@ export default function EditProfile() {
                 </TouchableOpacity>
               </View>
               {isUploading && (
-                <Text className="text-zinc-400 mt-2">Uploading...</Text>
+                <Text className="text-white mt-2">Uploading...</Text>
               )}
             </View>
 
             {/* Name Input */}
             <View>
-              <Text className="text-zinc-400 mb-2">Name</Text>
+              <Text className="text-white mb-2">Name</Text>
               <TextInput
                 className="bg-zinc-900 p-4 rounded-xl text-white"
                 placeholder="Enter your name"
@@ -210,7 +210,7 @@ export default function EditProfile() {
 
             {/* Email Input */}
             <View>
-              <Text className="text-zinc-400 mb-2 mt-6">Email Address</Text>
+              <Text className="text-white mb-2 mt-6">Email Address</Text>
               <TextInput
                 className="bg-zinc-900 p-4 rounded-xl text-white"
                 placeholder="Enter your email"
