@@ -47,14 +47,17 @@ async function seedDB() {
     // }
 
     const randInt = Math.floor(Math.random() * demoUsers.length);
-    // const seedUserId = demoUsers[randInt].id;
-    const seedUserId = "b9e1e276-519d-4706-913f-6d4e457d750e";
+    const seedUserId = demoUsers[randInt].id;
+    // const seedUserId = "b9e1e276-519d-4706-913f-6d4e457d750e";
     const parsed = JSON.parse(
       await fs.readFile("../videos.json", "utf-8")
     ) as DBTypes.VideoInsertion[];
 
     let imgIndexCounter = 0;
-    for (let i = 5; i < parsed.length; i++) {
+    for (let i = 0; i < parsed.length; i++) {
+      if (imgIndexCounter >= 3) {
+        imgIndexCounter = 0;
+      }
       const video = parsed[i];
       const listing = generateListing(seedUserId, video.title);
 

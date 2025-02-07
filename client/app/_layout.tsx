@@ -133,7 +133,7 @@ export default function RootLayout() {
                 }}
               />
               <Stack.Screen
-                name="(modals)/chat/index"
+                name="(modals)/chat/[id]"
                 options={{
                   headerShown: false,
                   title: "Chat",

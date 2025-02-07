@@ -23,18 +23,22 @@ interface ChatProps {
   agentName?: string;
   agentImage?: string;
   onPhonePress?: () => void;
+  conversationId: string;
 }
 
 export default function Chat({
   agentName = "John Smith",
   agentImage = "https://i.pravatar.cc/100",
   onPhonePress,
+  conversationId,
 }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const flatListRef = useRef<FlatList>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const bottomMargin = useRef(new Animated.Value(16)).current;
+
+  console.log(conversationId);
 
   useEffect(() => {
     const keyboardWillShow = Keyboard.addListener(
