@@ -4,6 +4,7 @@ import { protectedProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { listingSchema, videoSchema } from "../../api/schemas.js";
 
 export const listingsRouter = createTRPCRouter({
   getListingDetails: protectedProcedure
@@ -151,5 +152,60 @@ export const listingsRouter = createTRPCRouter({
         .limit(10);
 
       return results;
+    }),
+  createNewListing: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        listing: listingSchema,
+        video: videoSchema,
+        listingImages: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const agent = await db.query.usersTable.findFirst({
+        where: eq(schema.usersTable.id, input.userId),
+        columns: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+        },
+      });
+
+      if (!agent) {
+        throw new Error("User not found");
+      }
+
+      const fullListing = {
+        ...input.listing,
+        userId: input.userId,
+        agentName: agent.name,
+      };
+
+      // Insert listing
+      const [newListing] = await db
+        .insert(schema.listingsTable)
+        .values(fullListing)
+        .returning();
+
+      const listingImages = input.listingImages.map((imageUrl) => ({
+        listingId: newListing.id,
+        url: imageUrl,
+      }));
+
+      // Insert images
+      await db.insert(schema.listingImagesTable).values(listingImages);
+
+      // Insert video
+      await db
+        .insert(schema.videosTable)
+        .values({
+          userId: input.userId,
+          listingId: newListing.id,
+          title: input.video.title,
+          description: input.video.description,
+          videoUrl: input.video.videoUrl,
+        })
+        .returning();
     }),
 });

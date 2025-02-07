@@ -1,3 +1,7 @@
+/**
+ *  Deprecated
+ */
+
 import React, { useState, useRef, useCallback } from "react";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import { Camera } from "lucide-react-native";

@@ -26,25 +26,6 @@ function formatPhoneNumber(phonNumber: string): string {
   return "";
 }
 
-const images: { id: string; uri: string }[] = [
-  {
-    id: "1",
-    uri: "https://na.rdcpix.com/8c0c5a1ca9e8c800cf7d6996f7e8c075w-c4132190752rd-w832_h468_r4_q80.webp",
-  },
-  {
-    id: "2",
-    uri: "https://na.rdcpix.com/b8f337dcf063a3dd34623edd77485fdew-c4258344017rd-w832_q80.jpg",
-  },
-  {
-    id: "3",
-    uri: "https://na.rdcpix.com/40375f3fda3c1218fdf8b3131ae2b8fdw-c4086160332rd-w832_q80.jpg",
-  },
-  {
-    id: "4",
-    uri: "https://na.rdcpix.com/b6e77db8f028b36bce82a41affba51cdw-c611782258rd-w832_q80.jpg",
-  },
-];
-
 type ListingFeatureProps = {
   icon: string;
   label: string;
