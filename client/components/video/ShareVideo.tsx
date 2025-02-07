@@ -14,7 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 const { height } = Dimensions.get("window");
-const MODAL_HEIGHT = height * 0.5;
+const MODAL_HEIGHT = height * 0.35;
 
 type ShareButtonProps = {
   icon: string;

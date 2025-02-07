@@ -94,7 +94,7 @@ export default function ImageModal({ images }: ImageModalProps) {
           <View style={styles.modalContent}>
             {/* Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Property Image</Text>
+              <Text style={styles.modalTitle}>Home Image</Text>
               <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>

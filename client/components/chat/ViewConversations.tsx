@@ -66,7 +66,6 @@ export function ConversationList({
     >
       <TouchableOpacity
         onPress={() => {
-          console.log("Conversation pressed:", item);
           handleConversationPress(item);
         }}
         style={styles.conversationItem}

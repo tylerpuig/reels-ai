@@ -239,11 +239,19 @@ export const videosRouter = createTRPCRouter({
     .input(
       z.object({
         commentId: z.number(),
+        videoId: z.number(),
       })
     )
     .mutation(async ({ input }) => {
       await db
         .delete(schema.commentsTable)
         .where(eq(schema.commentsTable.id, input.commentId));
+
+      await db
+        .update(schema.videosTable)
+        .set({
+          commentCount: sql`${schema.videosTable.commentCount} - 1`,
+        })
+        .where(eq(schema.videosTable.id, input.videoId));
     }),
 });

@@ -109,6 +109,7 @@ export default function CommentSection() {
     try {
       await deleteCommentMutation.mutateAsync({
         commentId,
+        videoId: activeVideoId,
       });
     } catch (error) {
       console.error("Failed to delete comment:", error);
