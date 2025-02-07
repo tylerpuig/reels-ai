@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   FlatList,
@@ -111,7 +111,7 @@ const Item = ({
   item: VideoData;
 }) => {
   const router = useRouter();
-  const video = React.useRef<ExpoVideo | null>(null);
+  const video = useRef<ExpoVideo | null>(null);
   const [status, setStatus] = useState<any>(null);
   const [isPaused, setIsPaused] = useState(false);
 

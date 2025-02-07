@@ -35,7 +35,7 @@ export function VideoScroll() {
 
   return (
     <View style={styles.container}>
-      <FeedToggle />
+      {/* <FeedToggle /> */}
       <VideoFeed />
 
       {/* Overlay for click away */}
