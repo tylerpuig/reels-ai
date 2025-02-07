@@ -25,11 +25,17 @@ import { ImportVideoButton } from "../../components/create/ImportVideoButton";
 import { PhotoGallery } from "../../components/create/PhotoGallery";
 import * as listingUtils from "../../components/create/utils";
 import { useRouter } from "expo-router";
+import { Video, House } from "lucide-react-native";
+import { Info } from "lucide-react-native";
+import { type PhotoGalleryPhoto } from "../../components/create/PhotoGallery";
 
 export default function ListingForm() {
   const { session } = useSessionStore();
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
+  const [photos, setPhotos] = useState<PhotoGalleryPhoto[]>([]);
+  const [importVideoButtonText, setImportVideoButtonText] =
+    useState("Import Video");
   const [videoData, setVideoData] = useState<VideoSubmitData>(
     listingUtils.getBaseVideoFormData()
   );
@@ -122,11 +128,20 @@ export default function ListingForm() {
         {/* Home Info Section */}
         <AccordionItem value="home-info">
           <AccordionTrigger>
-            <Text className="text-xl font-semibold text-white">
-              Video Details
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <Video className="w-5 h-5" color={"white"} />
+              <Text className="text-xl font-semibold text-white">
+                Video Details
+              </Text>
+            </View>
           </AccordionTrigger>
           <AccordionContent>
+            <View className="flex-row items-center gap-2">
+              <Info className="w-2 h-2" color={"white"} />
+              <Text className="text-xl font-semibold text-white">
+                Create a title and description for your video
+              </Text>
+            </View>
             <View className="mt-4">
               <Text className="text-white mb-2">Title</Text>
               <TextInput
@@ -137,7 +152,6 @@ export default function ListingForm() {
                 onChangeText={(text) =>
                   setVideoData({ ...videoData, title: text })
                 }
-                // keyboardType={keyboardType}
               />
             </View>
             <View className="mt-4">
@@ -154,18 +168,31 @@ export default function ListingForm() {
                 }
               />
             </View>
-            <ImportVideoButton setVideoData={setVideoData} />
+            <ImportVideoButton
+              setVideoData={setVideoData}
+              buttonText={importVideoButtonText}
+              setButtonText={setImportVideoButtonText}
+            />
           </AccordionContent>
         </AccordionItem>
 
         {/* Listing Details Section */}
         <AccordionItem value="listing-details">
           <AccordionTrigger>
-            <Text className="text-lg font-semibold text-white">
-              Listing Details
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <House className="w-5 h-5" color={"white"} />
+              <Text className="text-xl font-semibold text-white">
+                Listing Details
+              </Text>
+            </View>
           </AccordionTrigger>
           <AccordionContent>
+            <View className="flex-row items-center gap-2">
+              <Info className="w-2 h-2" color={"white"} />
+              <Text className="text-xl font-semibold text-white">
+                Connect a home listing to your video
+              </Text>
+            </View>
             {renderInput("Price", "price", "Enter price", "numeric")}
             {renderInput("Address", "address", "Enter street address")}
             {renderInput("City", "city", "Enter city")}
@@ -240,13 +267,11 @@ export default function ListingForm() {
               {renderInput("Agency", "agentAgency", "Enter agency name")}
             </View>
 
-            <PhotoGallery setImageLinks={setImageLinks} />
-            {/* <MediaGallery
-              onMediaSelected={(media) => {
-                console.log(media);
-              }}
-              type="video"
-            /> */}
+            <PhotoGallery
+              setImageLinks={setImageLinks}
+              photos={photos}
+              setPhotos={setPhotos}
+            />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

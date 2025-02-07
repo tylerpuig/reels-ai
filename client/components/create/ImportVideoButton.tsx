@@ -14,11 +14,15 @@ import { Button } from "~/components/ui/button";
 
 export function ImportVideoButton({
   setVideoData,
+  buttonText,
+  setButtonText,
 }: {
   setVideoData: React.Dispatch<React.SetStateAction<VideoSubmitData>>;
+  buttonText: string;
+  setButtonText: React.Dispatch<React.SetStateAction<string>>;
 }) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [buttonText, setButtonText] = useState("Import Video");
+  // const [isUploading, setIsUploading] = useState(false);
+  // const [buttonText, setButtonText] = useState("Import Video");
 
   const getUploadUrl = trpc.videos.getVideoUploadUrl.useMutation();
 
@@ -45,7 +49,7 @@ export function ImportVideoButton({
         const selectedVideo = result.assets[0];
         const videoUri = selectedVideo.uri;
 
-        setIsUploading(true);
+        // setIsUploading(true);
         setButtonText("Uploading...");
         try {
           // Determine content type based on file extension
@@ -114,7 +118,7 @@ export function ImportVideoButton({
       console.error("video picker error:", error);
       setButtonText("Import Video");
     } finally {
-      setIsUploading(false);
+      // setIsUploading(false);
     }
   };
 

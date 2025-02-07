@@ -12,18 +12,21 @@ import * as ImagePicker from "expo-image-picker";
 import { Button } from "~/components/ui/button";
 import { Ionicons } from "@expo/vector-icons";
 
-type Photo = {
+export type PhotoGalleryPhoto = {
   id: string;
   uri: string;
 };
 
 export function PhotoGallery({
   setImageLinks,
+  photos,
+  setPhotos,
 }: {
   setImageLinks: React.Dispatch<React.SetStateAction<string[]>>;
+  photos: PhotoGalleryPhoto[];
+  setPhotos: React.Dispatch<React.SetStateAction<PhotoGalleryPhoto[]>>;
 }) {
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  // const [photos, setPhotos] = useState<Photo[]>([]);
 
   const getPresignedS3Url = trpc.user.getPresignedS3Url.useMutation();
 
@@ -55,7 +58,6 @@ export function PhotoGallery({
           const selectedImage = result.assets[0];
           const imageUri = selectedImage.uri;
 
-          setIsUploading(true);
           for (const photo of newPhotos) {
             try {
               const s3Data = await getPresignedS3Url.mutateAsync({
@@ -155,7 +157,7 @@ export function PhotoGallery({
         variant="outline"
         className="w-full"
         onPress={handleAddPhotos}
-        disabled={isUploading}
+        // disabled={isUploading}
       >
         <Text className="">
           {photos.length === 0 ? "Add Photos" : "Add More Photos"}

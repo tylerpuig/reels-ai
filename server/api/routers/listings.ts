@@ -47,7 +47,8 @@ export const listingsRouter = createTRPCRouter({
             url: schema.listingImagesTable.url,
           })
           .from(schema.listingImagesTable)
-          .where(eq(schema.listingImagesTable.listingId, input.listingId));
+          .where(eq(schema.listingImagesTable.listingId, input.listingId))
+          .limit(4);
 
         return {
           listing: listing.listing,
