@@ -9,24 +9,18 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
-interface Conversation {
-  id: string;
-  userName: string;
-  userImage: string;
-  propertyAddress: string;
-  lastMessage: string;
-  lastMessageTime: string;
-}
+import { trpc } from "../../trpc/client";
+import { useSessionStore } from "@/hooks/useSession";
+import { type ConversationData } from "../../trpc/types";
 
 export function ConversationList({
   conversations,
   handleConversationPress,
 }: {
-  conversations: Conversation[];
-  handleConversationPress: (conversation: Conversation) => void;
+  conversations: ConversationData[];
+  handleConversationPress: (conversation: ConversationData) => void;
 }) {
-  const renderItem = ({ item }: { item: Conversation }) => (
+  const renderItem = ({ item }: { item: ConversationData }) => (
     <TouchableOpacity
       onPress={() => {
         console.log("Conversation pressed:", item);
@@ -35,23 +29,28 @@ export function ConversationList({
       style={styles.conversationItem}
     >
       {/* User Image */}
-      <Image source={{ uri: item.userImage }} style={styles.userImage} />
+      <Image
+        source={{ uri: item.recipientAvatarUrl ?? "" }}
+        style={styles.userImage}
+      />
 
       {/* Content */}
       <View style={styles.contentContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.userName} numberOfLines={1}>
-            {item.userName}
+            {item.recipientName}
           </Text>
-          <Text style={styles.timeText}>{item.lastMessageTime}</Text>
+          <Text style={styles.timeText}>
+            {item.lastMessageAt.toLocaleString()}
+          </Text>
         </View>
 
         <Text style={styles.propertyAddress} numberOfLines={1}>
-          {item.propertyAddress}
+          {item.listingAddress}
         </Text>
 
         <Text style={styles.lastMessage} numberOfLines={1}>
-          {item.lastMessage}
+          {/* {item.} */}
         </Text>
       </View>
 
@@ -76,55 +75,39 @@ export function ConversationList({
       <FlatList
         data={conversations}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         style={styles.list}
       />
     </View>
   );
 }
 
-// Example usage
-export function ExampleConversationList() {
-  const sampleConversations: Conversation[] = [
-    {
-      id: "1",
-      userName: "Sarah Johnson",
-      userImage: "https://i.pravatar.cc/100?u=1",
-      propertyAddress: "123 Park Avenue, New York, NY 10002",
-      lastMessage: "Yes, I would love to schedule a viewing for tomorrow.",
-      lastMessageTime: "2:30 PM",
-    },
-    {
-      id: "2",
-      userName: "Michael Chen",
-      userImage: "https://i.pravatar.cc/100?u=2",
-      propertyAddress: "456 Ocean Drive, Miami Beach, FL 33139",
-      lastMessage: "What are the HOA fees for this property?",
-      lastMessageTime: "11:45 AM",
-    },
-    {
-      id: "3",
-      userName: "Emily Rodriguez",
-      userImage: "https://i.pravatar.cc/100?u=3",
-      propertyAddress: "789 Sunset Boulevard, Los Angeles, CA 90028",
-      lastMessage: "Is the price negotiable?",
-      lastMessageTime: "Yesterday",
-    },
-  ];
-
+export function ViewConversationList() {
   const router = useRouter();
+  const { session } = useSessionStore();
+  const { data: conversations, refetch: refetchConversations } =
+    trpc.chat.getUserConversations.useQuery({
+      userId: session?.user?.id ?? "",
+    });
 
-  const handleConversationPress = (conversation: Conversation) => {
+  console.log(conversations);
+
+  const handleConversationPress = (conversation: ConversationData) => {
     console.log("Conversation pressed:", conversation);
     router.push({
       pathname: "/(modals)/chat/[id]",
-      params: { id: conversation.id },
+      params: {
+        id: conversation.id,
+        agentId: conversation.recipientId,
+        agentPhoto: conversation.recipientAvatarUrl,
+        agentName: conversation.recipientName,
+      },
     });
   };
 
   return (
     <ConversationList
-      conversations={sampleConversations}
+      conversations={conversations ?? []}
       handleConversationPress={handleConversationPress}
     />
   );

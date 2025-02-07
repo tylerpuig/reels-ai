@@ -1,5 +1,5 @@
-import { ExampleConversationList } from "../../components/chat/ViewConversations";
+import { ViewConversationList } from "../../components/chat/ViewConversations";
 
 export default function Conversations() {
-  return <ExampleConversationList />;
+  return <ViewConversationList />;
 }

@@ -12,33 +12,44 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { type ConversationMessage } from "../../trpc/types";
+import { trpc } from "../../trpc/client";
+import { useSessionStore } from "@/hooks/useSession";
 
-interface Message {
-  id: string;
-  text: string;
-  sender: "user1" | "user2";
-}
-
-interface ChatProps {
-  agentName?: string;
-  agentImage?: string;
-  onPhonePress?: () => void;
-  conversationId: string;
-}
+type ChatProps = {
+  conversationId: number;
+  agentId: string;
+  agentPhoto: string;
+  agentName: string;
+};
 
 export default function Chat({
-  agentName = "John Smith",
-  agentImage = "https://i.pravatar.cc/100",
-  onPhonePress,
   conversationId,
+  agentId,
+  agentPhoto,
+  agentName,
 }: ChatProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const flatListRef = useRef<FlatList>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const bottomMargin = useRef(new Animated.Value(16)).current;
+  const router = useRouter();
+  const { session } = useSessionStore();
 
-  console.log(conversationId);
+  const { data: messages, refetch: refetchMessages } =
+    trpc.chat.getConversationMessages.useQuery({
+      conversationId: conversationId,
+    });
+
+  const sendConversationMessage = trpc.chat.sendConversationMessage.useMutation(
+    {
+      onSuccess: () => {
+        refetchMessages();
+        setInputText("");
+      },
+    }
+  );
 
   useEffect(() => {
     const keyboardWillShow = Keyboard.addListener(
@@ -71,29 +82,13 @@ export default function Chat({
     };
   }, []);
 
-  const sendMessage = (sender: "user1" | "user2", text: string) => {
-    if (text.trim() === "") return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: text.trim(),
-      sender,
-    };
-
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-  };
-
-  const handleSend = () => {
-    if (inputText.trim() === "") return;
-
-    // Send user message
-    sendMessage("user1", inputText);
-    setInputText("");
-
-    // Simulate auto-reply after a delay
-    setTimeout(() => {
-      sendMessage("user2", `Reply to: ${inputText}`);
-    }, 1000);
+  const sendMessage = () => {
+    if (!inputText.trim()) return;
+    sendConversationMessage.mutate({
+      conversationId,
+      content: inputText,
+      senderId: session?.user?.id ?? "",
+    });
   };
 
   useEffect(() => {
@@ -103,18 +98,26 @@ export default function Chat({
     }, 100);
   }, [messages]);
 
-  const renderMessage = ({ item }: { item: Message }) => (
+  const renderMessage = ({
+    item,
+    userId,
+  }: {
+    item: ConversationMessage;
+    userId: string;
+  }) => (
     <View
       className={`max-w-[80%] px-4 py-2 rounded-2xl mb-2 ${
-        item.sender === "user1" ? "self-end bg-white" : "self-start bg-zinc-900"
+        item.senderId === userId
+          ? "self-end bg-white"
+          : "self-start bg-zinc-900"
       }`}
     >
       <Text
         className={`text-base ${
-          item.sender === "user1" ? "text-black" : "text-white"
+          item.senderId === userId ? "text-black" : "text-white"
         }`}
       >
-        {item.text}
+        {item.content}
       </Text>
     </View>
   );
@@ -122,15 +125,27 @@ export default function Chat({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-[#0a0a0a] pt-16"
+      className="flex-1 bg-[#0a0a0a] pt-12"
     >
+      {/* Header */}
+      <View className="flex-row items-center pt-12 px-5 pb-3 border-b border-zinc-800">
+        <TouchableOpacity
+          className="p-1 z-10"
+          onPress={() => {
+            router.back();
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text className="text-lg font-semibold ml-4 text-white">Messages</Text>
+      </View>
       <View className="px-8 py-4 border-b border-zinc-800 flex-row items-center justify-between">
         <View className="flex-row items-center space-x-3">
           <Image
-            source={{ uri: agentImage }}
+            source={{ uri: agentPhoto }}
             className="w-12 h-12 rounded-full"
           />
-          <View>
+          <View className="ml-2">
             <Text className="text-white text-lg font-semibold">
               {agentName}
             </Text>
@@ -138,7 +153,7 @@ export default function Chat({
           </View>
         </View>
         <TouchableOpacity
-          onPress={onPhonePress}
+          onPress={() => {}}
           className="w-10 h-10 bg-zinc-900 rounded-full items-center justify-center"
         >
           <Ionicons name="call-outline" size={20} color="white" />
@@ -148,8 +163,10 @@ export default function Chat({
       <FlatList
         ref={flatListRef}
         data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
+        renderItem={({ item }) =>
+          renderMessage({ item, userId: session?.user?.id ?? "" })
+        }
+        keyExtractor={(item) => item.id.toString()}
         className="px-4 py-5"
       />
 
@@ -164,11 +181,11 @@ export default function Chat({
             onChangeText={setInputText}
             placeholder="Type a message..."
             placeholderTextColor="#666"
-            onSubmitEditing={handleSend}
+            onSubmitEditing={sendMessage}
           />
           <TouchableOpacity
             className="bg-white px-4 rounded-xl items-center justify-center"
-            onPress={handleSend}
+            onPress={sendMessage}
           >
             <Text className="text-base font-semibold text-black">Send</Text>
           </TouchableOpacity>

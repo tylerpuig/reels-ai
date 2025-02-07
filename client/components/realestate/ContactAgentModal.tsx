@@ -12,26 +12,46 @@ import {
   Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { trpc } from "../../trpc/client";
+import { useSessionStore } from "@/hooks/useSession";
 
-interface ContactModalProps {
+type ContactModalProps = {
   visible: boolean;
   onClose: () => void;
   agentName: string;
   propertyAddress: string;
-}
+  listingId: number;
+  agentId: string;
+};
 
 export default function ContactModal({
   visible,
   onClose,
   agentName,
   propertyAddress,
+  listingId,
+  agentId,
 }: ContactModalProps) {
+  const { session } = useSessionStore();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     message: "",
   });
+
+  const createAgentConversation =
+    trpc.chat.createConversationWithAgent.useMutation({
+      onSettled: () => {
+        onClose();
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          message: "",
+        });
+      },
+    });
 
   const slideAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -54,9 +74,12 @@ export default function ContactModal({
   }, [visible]);
 
   const handleSubmit = () => {
-    // Handle form submission here
-    console.log(formData);
-    onClose();
+    createAgentConversation.mutate({
+      userId: session?.user?.id ?? "",
+      agentId: agentId,
+      listingId: listingId,
+      message: formData.message,
+    });
   };
 
   return (
@@ -170,7 +193,9 @@ export default function ContactModal({
                 onPress={handleSubmit}
               >
                 <Text className="text-base font-semibold text-black">
-                  Send Message
+                  {createAgentConversation.isLoading
+                    ? "Sending..."
+                    : "Send Message"}
                 </Text>
               </TouchableOpacity>
             </View>
