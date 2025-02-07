@@ -134,4 +134,15 @@ export const chatRouter = createTRPCRouter({
 
       return messages;
     }),
+  deleteConversation: protectedProcedure
+    .input(
+      z.object({
+        conversationId: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await db
+        .delete(schema.conversationsTable)
+        .where(eq(schema.conversationsTable.id, input.conversationId));
+    }),
 });

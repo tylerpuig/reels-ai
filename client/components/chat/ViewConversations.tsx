@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,72 +6,111 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
 import { type ConversationData } from "../../trpc/types";
+import { Swipeable } from "react-native-gesture-handler";
+import { Trash } from "lucide-react-native";
+
+const RightActions = (
+  progress: Animated.AnimatedInterpolation<number>,
+  dragX: Animated.AnimatedInterpolation<number>,
+  onDelete: () => void
+) => {
+  const scale = dragX.interpolate({
+    inputRange: [-100, 0],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+
+  return (
+    <TouchableOpacity onPress={onDelete}>
+      <View style={styles.deleteAction}>
+        <Animated.Text
+          style={[styles.deleteActionText, { transform: [{ scale }] }]}
+        >
+          <Trash size={24} color="white" />
+        </Animated.Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 export function ConversationList({
   conversations,
   handleConversationPress,
+  onDeleteConversation,
 }: {
   conversations: ConversationData[];
   handleConversationPress: (conversation: ConversationData) => void;
+  onDeleteConversation: (conversationId: number) => void;
 }) {
-  const renderItem = ({ item }: { item: ConversationData }) => (
-    <TouchableOpacity
-      onPress={() => {
-        console.log("Conversation pressed:", item);
-        handleConversationPress(item);
-      }}
-      style={styles.conversationItem}
-    >
-      {/* User Image */}
-      <Image
-        source={{ uri: item.recipientAvatarUrl ?? "" }}
-        style={styles.userImage}
-      />
+  const rowRefs = useRef<{ [key: string]: Swipeable }>({});
 
-      {/* Content */}
-      <View style={styles.contentContainer}>
-        <View style={styles.headerRow}>
-          <Text style={styles.userName} numberOfLines={1}>
-            {item.recipientName}
+  const renderItem = ({ item }: { item: ConversationData }) => (
+    <Swipeable
+      ref={(ref) => {
+        if (ref) rowRefs.current[item.id] = ref;
+      }}
+      renderRightActions={(progress, dragX) =>
+        RightActions(progress, dragX, () => {
+          onDeleteConversation(item.id);
+          rowRefs.current[item.id]?.close();
+        })
+      }
+      rightThreshold={40}
+    >
+      <TouchableOpacity
+        onPress={() => {
+          console.log("Conversation pressed:", item);
+          handleConversationPress(item);
+        }}
+        style={styles.conversationItem}
+      >
+        <Image
+          source={{ uri: item.recipientAvatarUrl ?? "" }}
+          style={styles.userImage}
+        />
+
+        <View style={styles.contentContainer}>
+          <View style={styles.headerRow}>
+            <Text style={styles.userName} numberOfLines={1}>
+              {item.recipientName}
+            </Text>
+            <Text style={styles.timeText}>
+              {item.lastMessageAt.toLocaleString()}
+            </Text>
+          </View>
+
+          <Text style={styles.propertyAddress} numberOfLines={1}>
+            {item.listingAddress}
           </Text>
-          <Text style={styles.timeText}>
-            {item.lastMessageAt.toLocaleString()}
+
+          <Text style={styles.lastMessage} numberOfLines={1}>
+            {/* {item.lastMessage} */}
           </Text>
         </View>
 
-        <Text style={styles.propertyAddress} numberOfLines={1}>
-          {item.listingAddress}
-        </Text>
-
-        <Text style={styles.lastMessage} numberOfLines={1}>
-          {/* {item.} */}
-        </Text>
-      </View>
-
-      {/* Right Arrow */}
-      <Ionicons
-        name="chevron-forward"
-        size={20}
-        color="#666"
-        style={styles.chevron}
-      />
-    </TouchableOpacity>
+        <Ionicons
+          name="chevron-forward"
+          size={20}
+          color="#666"
+          style={styles.chevron}
+        />
+      </TouchableOpacity>
+    </Swipeable>
   );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Messages</Text>
       </View>
 
-      {/* Conversations List */}
       <FlatList
         data={conversations}
         renderItem={renderItem}
@@ -82,6 +121,8 @@ export function ConversationList({
   );
 }
 
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 export function ViewConversationList() {
   const router = useRouter();
   const pathname = usePathname();
@@ -90,6 +131,12 @@ export function ViewConversationList() {
     trpc.chat.getUserConversations.useQuery({
       userId: session?.user?.id ?? "",
     });
+
+  const deleteConversation = trpc.chat.deleteConversation.useMutation({
+    onSuccess: () => {
+      refetchConversations();
+    },
+  });
 
   useEffect(() => {
     refetchConversations();
@@ -107,25 +154,48 @@ export function ViewConversationList() {
     });
   };
 
+  const handleDeleteConversation = async (conversationId: number) => {
+    try {
+      await deleteConversation.mutateAsync({ conversationId });
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+    }
+  };
+
   return (
-    <ConversationList
-      conversations={conversations ?? []}
-      handleConversationPress={handleConversationPress}
-    />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ConversationList
+        conversations={conversations ?? []}
+        handleConversationPress={handleConversationPress}
+        onDeleteConversation={handleDeleteConversation}
+      />
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  deleteAction: {
+    backgroundColor: "#dc2626", // Red color
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    height: "100%",
+  },
+  deleteActionText: {
+    color: "white",
+    fontWeight: "600",
+    padding: 10,
+  },
   container: {
     flex: 1,
     backgroundColor: "#0a0a0a",
-    paddingTop: 64, // Matches the PT-16 from your original
+    paddingTop: 64,
   },
   header: {
-    paddingHorizontal: 32, // Matches the PX-8 from your original
+    paddingHorizontal: 32,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#27272a", // Zinc-800 equivalent
+    borderBottomColor: "#27272a",
   },
   headerText: {
     color: "white",
@@ -142,6 +212,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#27272a",
+    backgroundColor: "#0a0a0a",
   },
   userImage: {
     width: 48,
@@ -165,16 +236,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timeText: {
-    color: "#a1a1aa", // Zinc-400 equivalent
+    color: "#a1a1aa",
     fontSize: 14,
     marginLeft: 8,
   },
   propertyAddress: {
-    color: "#a1a1aa", // Zinc-400 equivalent
+    color: "#a1a1aa",
     marginTop: 2,
   },
   lastMessage: {
-    color: "#71717a", // Zinc-500 equivalent
+    color: "#71717a",
     fontSize: 14,
     marginTop: 2,
   },

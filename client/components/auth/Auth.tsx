@@ -5,12 +5,16 @@ import { Button, Input } from "@rneui/themed";
 import { useSessionStore } from "@/hooks/useSession";
 import { APP_URL } from "../../constants/app";
 import { type Session } from "@supabase/supabase-js";
+import { Button as NWButton } from "~/components/ui/button";
 
 export default function Auth() {
   const { setSession } = useSessionStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingType, setLoadingType] = useState<"signIn" | "signUp" | null>(
+    null
+  );
 
   async function createNewUser(session: Session) {
     try {
@@ -33,6 +37,7 @@ export default function Auth() {
 
   async function signInWithEmail() {
     setLoading(true);
+    setLoadingType("signIn");
     const { error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
@@ -40,11 +45,13 @@ export default function Auth() {
 
     if (error) Alert.alert(error.message);
     setLoading(false);
+    setLoadingType(null);
   }
 
   async function signUpWithEmail() {
     try {
       setLoading(true);
+      setLoadingType("signUp");
       const {
         data: { session },
         error,
@@ -60,6 +67,7 @@ export default function Auth() {
     } catch (_) {
     } finally {
       setLoading(false);
+      setLoadingType(null);
     }
   }
 
@@ -96,32 +104,45 @@ export default function Auth() {
           autoCapitalize={"none"}
         />
       </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button
-          title="Sign in"
-          disabled={loading}
+      <View className="mb-2">
+        <NWButton
+          style={styles.nwButton}
+          className="py-5"
+          disabled={loadingType === "signIn"}
           onPress={() => signInWithEmail()}
-          buttonStyle={styles.button}
-          titleStyle={styles.buttonText}
-        />
+          variant="outline"
+        >
+          <Text className="">
+            {loading && loadingType === "signIn" ? "Signing In..." : "Sign In"}
+          </Text>
+        </NWButton>
       </View>
+
       <View style={styles.verticallySpaced}>
-        <Button
-          title="Sign up"
-          disabled={loading}
+        <NWButton
+          style={styles.nwButton}
+          className="py-5"
+          disabled={loadingType === "signUp"}
           onPress={() => signUpWithEmail()}
-          buttonStyle={styles.secondaryButton}
-          titleStyle={styles.secondaryButtonText}
-        />
+          variant="outline"
+        >
+          <Text className="">
+            {loading && loadingType === "signUp" ? "Signing Up..." : "Sign Up"}
+          </Text>
+        </NWButton>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  nwButton: {
+    paddingVertical: 10,
+  },
   container: {
     marginTop: 40,
     padding: 12,
+    backgroundColor: "#0a0a0a",
   },
   companyName: {
     fontSize: 32,
