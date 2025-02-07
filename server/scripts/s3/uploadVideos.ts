@@ -111,14 +111,15 @@ main();
 export async function insertVideo(video: VideoInfo, s3Url: string) {
   try {
     // const randInt = Math.floor(Math.random() * 1000);
-    await db.insert(schema.videosTable).values([
-      {
-        userId: "49969f3c-a3e5-4154-b7a5-d365daa338fc",
-        title: video.title,
-        description: video.description,
-        videoUrl: s3Url,
-      },
-    ]);
+    // await db.insert(schema.videosTable).values([
+    //   {
+    //     userId: "49969f3c-a3e5-4154-b7a5-d365daa338fc",
+    //     title: video.title,
+    //     description: video.description,
+    //     videoUrl: s3Url,
+    //     listingId: 1,
+    //   },
+    // ]);
   } catch (err) {
     console.log(err);
   }

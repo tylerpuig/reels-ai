@@ -27,6 +27,12 @@ const ProfileMenuItem = ({
   </TouchableOpacity>
 );
 
+type ProfileMenuItem = {
+  label: string;
+  icon: string;
+  route: string;
+  params?: Record<string, any>;
+};
 export default function ProfileScreen() {
   const pathname = usePathname();
   const router = useRouter();
@@ -40,13 +46,18 @@ export default function ProfileScreen() {
     refetchProfileData();
   }, [pathname]);
 
-  const menuItems = [
+  const menuItems: ProfileMenuItem[] = [
     {
       label: "Edit Profile",
-      icon: "person-outline",
+      icon: "settings-outline",
       route: "/(modals)/editprofile",
     },
-    { label: "Manage Settings", icon: "settings-outline", route: "/settings" },
+    {
+      label: "Public Profile",
+      icon: "person-outline",
+      route: "/viewprofile/[id]",
+      params: { id: session?.user?.id ?? "" },
+    },
     { label: "Manage Ads", icon: "megaphone-outline", route: "/manage-ads" },
     {
       label: "Saved Listings",
@@ -97,7 +108,14 @@ export default function ProfileScreen() {
             <ProfileMenuItem
               label={item.label}
               icon={item.icon}
-              onPress={() => router.push(item.route)}
+              onPress={() => {
+                const params = item.params ?? {};
+                const routerObj = {
+                  pathname: item.route,
+                  params,
+                };
+                router.push(routerObj);
+              }}
             />
             {index < menuItems.length - 1 && (
               <Separator className="bg-zinc-800 mx-5" />
