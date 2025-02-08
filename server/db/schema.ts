@@ -10,6 +10,7 @@ import {
   vector,
   date,
   decimal,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -305,6 +306,7 @@ export const messagesTable = pgTable(
       .notNull(),
     content: text("content").notNull(),
     read: boolean("read").default(false).notNull(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),

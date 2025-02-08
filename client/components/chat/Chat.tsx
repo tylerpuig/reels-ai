@@ -18,6 +18,7 @@ import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
 import { makePhoneCall } from "../../components/realestate/Listing";
 import { EventScreen } from "./AddToCalendar";
+import { EventConfirmation, type EventMetadata } from "./EventConfirmation";
 
 type ChatProps = {
   conversationId: number;
@@ -40,9 +41,16 @@ export default function Chat({
   const { session } = useSessionStore();
 
   const { data: messages, refetch: refetchMessages } =
-    trpc.chat.getConversationMessages.useQuery({
-      conversationId: conversationId,
-    });
+    trpc.chat.getConversationMessages.useQuery(
+      {
+        conversationId: conversationId,
+      },
+      {
+        // refetchInterval: 1000,
+      }
+    );
+
+  // console.log(messages);
 
   const sendConversationMessage = trpc.chat.sendConversationMessage.useMutation(
     {
@@ -106,23 +114,32 @@ export default function Chat({
   }: {
     item: ConversationMessage;
     userId: string;
-  }) => (
-    <View
-      className={`max-w-[80%] px-4 py-2 rounded-2xl mb-2 ${
-        item.senderId === userId
-          ? "self-end bg-white"
-          : "self-start bg-zinc-900"
-      }`}
-    >
-      <Text
-        className={`text-base ${
-          item.senderId === userId ? "text-black" : "text-white"
-        }`}
-      >
-        {item.content}
-      </Text>
-    </View>
-  );
+  }) => {
+    return (
+      <View className="">
+        <View
+          className={`max-w-[80%] px-4 py-2 rounded-2xl mb-2 ${
+            item.senderId === userId
+              ? "self-end bg-white"
+              : "self-start bg-zinc-700"
+          }`}
+        >
+          <Text
+            className={`text-base ${
+              item.senderId === userId ? "text-black" : "text-white"
+            }`}
+          >
+            {item.content}
+          </Text>
+        </View>
+
+        <EventConfirmation
+          metadata={item.metadata as EventMetadata}
+          isUserMessage={item.senderId === userId}
+        />
+      </View>
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -173,8 +190,6 @@ export default function Chat({
         keyExtractor={(item) => item.id.toString()}
         className="px-4 py-5"
       />
-
-      <EventScreen />
 
       <Animated.View
         style={{ marginBottom: bottomMargin }}

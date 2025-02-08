@@ -4,6 +4,7 @@ import { protectedProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
 import { asc, eq, or, desc, aliasedTable } from "drizzle-orm";
+import { autoAgentReply } from "../../integrations/openai.js";
 
 export const chatRouter = createTRPCRouter({
   createConversationWithAgent: protectedProcedure
@@ -112,6 +113,8 @@ export const chatRouter = createTRPCRouter({
           lastMessageAt: new Date(),
         })
         .where(eq(schema.conversationsTable.id, input.conversationId));
+
+      void autoAgentReply(input.conversationId, input.content, input.senderId);
     }),
   getConversationMessages: protectedProcedure
     .input(
@@ -126,11 +129,12 @@ export const chatRouter = createTRPCRouter({
           content: schema.messagesTable.content,
           senderId: schema.messagesTable.senderId,
           createdAt: schema.messagesTable.createdAt,
+          metadata: schema.messagesTable.metadata,
         })
         .from(schema.messagesTable)
         .where(eq(schema.messagesTable.conversationId, input.conversationId))
         .orderBy(asc(schema.messagesTable.createdAt))
-        .limit(10);
+        .limit(30);
 
       return messages;
     }),
