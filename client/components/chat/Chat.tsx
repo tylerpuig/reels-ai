@@ -17,7 +17,6 @@ import { type ConversationMessage } from "../../trpc/types";
 import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
 import { makePhoneCall } from "../../components/realestate/Listing";
-import { EventScreen } from "./AddToCalendar";
 import { EventConfirmation, type EventMetadata } from "./EventConfirmation";
 
 type ChatProps = {
