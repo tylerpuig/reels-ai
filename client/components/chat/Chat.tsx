@@ -45,11 +45,9 @@ export default function Chat({
         conversationId: conversationId,
       },
       {
-        // refetchInterval: 1000,
+        refetchInterval: 2000,
       }
     );
-
-  // console.log(messages);
 
   const sendConversationMessage = trpc.chat.sendConversationMessage.useMutation(
     {

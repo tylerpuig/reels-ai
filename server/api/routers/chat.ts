@@ -40,6 +40,8 @@ export const chatRouter = createTRPCRouter({
         },
       ]);
 
+      void autoAgentReply(conversation.id, input.message, input.userId);
+
       return { success: true };
     }),
   getUserConversations: protectedProcedure
