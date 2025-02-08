@@ -17,6 +17,7 @@ import { type ConversationMessage } from "../../trpc/types";
 import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
 import { makePhoneCall } from "../../components/realestate/Listing";
+import { EventScreen } from "./AddToCalendar";
 
 type ChatProps = {
   conversationId: number;
@@ -172,6 +173,8 @@ export default function Chat({
         keyExtractor={(item) => item.id.toString()}
         className="px-4 py-5"
       />
+
+      <EventScreen />
 
       <Animated.View
         style={{ marginBottom: bottomMargin }}
