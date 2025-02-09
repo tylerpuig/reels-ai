@@ -24,3 +24,6 @@ export type ConversationData = NonNullable<
 export type ConversationMessage = NonNullable<
   RouterOutputs["chat"]["getConversationMessages"][number]
 >;
+export type AgentListing = NonNullable<
+  RouterOutputs["listings"]["getListingsByAgent"][number]
+>;

@@ -209,4 +209,31 @@ export const listingsRouter = createTRPCRouter({
         })
         .returning();
     }),
+  getListingsByAgent: protectedProcedure
+    .input(z.object({ agentId: z.string() }))
+    .query(async ({ input }) => {
+      const results = await db
+        .select({
+          id: schema.listingsTable.id,
+          address: schema.listingsTable.address,
+          price: schema.listingsTable.price,
+          beds: schema.listingsTable.beds,
+          baths: schema.listingsTable.baths,
+          sqft: schema.listingsTable.sqft,
+          imageUrl: sql<string>`(
+      SELECT url 
+      FROM ${schema.listingImagesTable} 
+      WHERE listing_id = ${schema.listingsTable.id} 
+      LIMIT 1
+    )`.as("image_url"),
+        })
+        .from(schema.listingsTable)
+        .where(eq(schema.listingsTable.userId, input.agentId))
+        .orderBy(desc(schema.listingsTable.createdAt))
+        .limit(10);
+
+      console.log(results);
+
+      return results;
+    }),
 });

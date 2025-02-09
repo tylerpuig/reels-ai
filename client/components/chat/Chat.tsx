@@ -18,6 +18,7 @@ import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
 import { makePhoneCall } from "../../components/realestate/Listing";
 import { EventConfirmation, type EventMetadata } from "./EventConfirmation";
+import AgentListingModal from "../../components/chat/AgentListings";
 
 type ChatProps = {
   conversationId: number;
@@ -38,6 +39,7 @@ export default function Chat({
   const bottomMargin = useRef(new Animated.Value(16)).current;
   const router = useRouter();
   const { session } = useSessionStore();
+  const [showAgentListingModal, setShowAgentListingModal] = useState(false);
 
   const { data: messages, refetch: refetchMessages } =
     trpc.chat.getConversationMessages.useQuery(
@@ -155,27 +157,46 @@ export default function Chat({
         </TouchableOpacity>
         <Text className="text-lg font-semibold ml-4 text-white">Messages</Text>
       </View>
+
+      <AgentListingModal
+        agentId={agentId}
+        visible={showAgentListingModal}
+        onClose={() => setShowAgentListingModal(false)}
+      />
+
       <View className="px-8 py-4 border-b border-zinc-800 flex-row items-center justify-between">
-        <View className="flex-row items-center space-x-3">
-          <Image
-            source={{ uri: agentPhoto }}
-            className="w-12 h-12 rounded-full"
-          />
-          <View className="ml-2">
-            <Text className="text-white text-lg font-semibold">
-              {agentName}
-            </Text>
-            <Text className="text-zinc-400">Real Estate Agent</Text>
-          </View>
+        <View className="flex-row items-center justify-between flex-1">
+          {/* Agent Info Section */}
+          <TouchableOpacity
+            onPress={() => {
+              console.log("show agent listing modal");
+              setShowAgentListingModal(true);
+            }}
+            className="flex-row items-center flex-1"
+          >
+            <Image
+              source={{ uri: agentPhoto }}
+              className="w-12 h-12 rounded-full"
+            />
+
+            <View className="ml-2">
+              <Text className="text-white text-lg font-semibold">
+                {agentName}
+              </Text>
+              <Text className="text-zinc-400">Real Estate Agent</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Phone Call Button */}
+          <TouchableOpacity
+            onPress={() => {
+              makePhoneCall("+12345678901");
+            }}
+            className="w-10 h-10 bg-zinc-900 rounded-full items-center justify-center ml-4"
+          >
+            <Ionicons name="call-outline" size={20} color="white" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={() => {
-            makePhoneCall("+12345678901");
-          }}
-          className="w-10 h-10 bg-zinc-900 rounded-full items-center justify-center"
-        >
-          <Ionicons name="call-outline" size={20} color="white" />
-        </TouchableOpacity>
       </View>
 
       <FlatList
