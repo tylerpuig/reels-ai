@@ -83,6 +83,8 @@ export async function autoAgentReply(
           
           Do not put the startDate yourself unless you get confirmation from the user. Do 60 minutes by default for the startdate and endtime time difference. Try to keep all your responses around 1-2 sentences. You may make up information if needed to simulate a real estate agent's response to a user's message.
 
+          Curent time: ${new Date().toISOString()}
+
           Examples:
 
           Previous Message From Agent: 
