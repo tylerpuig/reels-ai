@@ -26,8 +26,6 @@ export function PhotoGallery({
   photos: PhotoGalleryPhoto[];
   setPhotos: React.Dispatch<React.SetStateAction<PhotoGalleryPhoto[]>>;
 }) {
-  // const [photos, setPhotos] = useState<Photo[]>([]);
-
   const getPresignedS3Url = trpc.user.getPresignedS3Url.useMutation();
 
   const handleAddPhotos = async () => {

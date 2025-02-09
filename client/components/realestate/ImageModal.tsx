@@ -94,7 +94,7 @@ export default function ImageModal({ images }: ImageModalProps) {
           <View style={styles.modalContent}>
             {/* Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Home Image</Text>
+              <Text style={styles.modalTitle}>Interior Designer ✨</Text>
               <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>
@@ -104,13 +104,23 @@ export default function ImageModal({ images }: ImageModalProps) {
               scrollEnabled={!sliderEnabled}
               contentContainerStyle={styles.scrollContent}
             >
-              <View style={styles.sliderContainer}>
-                <ImageComparisonSlider
-                  originalImage={selectedImage?.url ?? ""}
-                  generatedImage={generatedImage}
-                  sliderEnabled={sliderEnabled}
-                />
-              </View>
+              {generatedImage ? (
+                <View style={styles.sliderContainer}>
+                  <ImageComparisonSlider
+                    originalImage={selectedImage?.url ?? ""}
+                    generatedImage={generatedImage}
+                    sliderEnabled={sliderEnabled}
+                  />
+                </View>
+              ) : (
+                <View style={styles.sliderContainer}>
+                  <Image
+                    source={{ uri: selectedImage?.url }}
+                    style={{ width: "100%", height: 300, borderRadius: 8 }}
+                    resizeMode="cover"
+                  />
+                </View>
+              )}
               <Text style={styles.visionText}>What's your vision?</Text>
               <View
                 style={{
@@ -163,8 +173,8 @@ export default function ImageModal({ images }: ImageModalProps) {
                 onPress={makeRequest}
                 variant="default"
               >
-                <Text className="text-white">
-                  {isGenerating ? "Generating..." : "Generate"}
+                <Text className="text-white text-lg font-bold">
+                  {isGenerating ? "✨ Creating... ✨" : "✨ Create ✨"}
                 </Text>
               </Button>
             </ScrollView>
