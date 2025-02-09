@@ -18,7 +18,8 @@ import { trpc } from "../../trpc/client";
 import { useSessionStore } from "@/hooks/useSession";
 import { makePhoneCall } from "../../components/realestate/Listing";
 import { EventConfirmation, type EventMetadata } from "./EventConfirmation";
-import AgentListingModal from "../../components/chat/AgentListings";
+import AgentListingModal from "./AgentListings";
+import { PhoneCallDialog } from "./PhoneCallDialog";
 
 type ChatProps = {
   conversationId: number;
@@ -198,6 +199,13 @@ export default function Chat({
           </TouchableOpacity>
         </View>
       </View>
+
+      <PhoneCallDialog
+        visible={true}
+        onClose={() => {}}
+        agentName={agentName}
+        agentPhoto={agentPhoto}
+      />
 
       <FlatList
         ref={flatListRef}

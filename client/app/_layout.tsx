@@ -23,6 +23,7 @@ import { NAV_THEME } from "~/lib/constants";
 import { useSessionStore } from "@/hooks/useSession";
 import { APP_URL } from "../constants/app";
 import { VideoProvider } from "@/hooks/useVideoContext";
+import { PortalHost } from "@rn-primitives/portal";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -145,6 +146,7 @@ export default function RootLayout() {
               />
             </Stack>
             <StatusBar style="auto" />
+            <PortalHost />
           </VideoProvider>
         </QueryClientProvider>
       </trpc.Provider>
