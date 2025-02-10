@@ -41,6 +41,7 @@ export default function Chat({
   const router = useRouter();
   const { session } = useSessionStore();
   const [showAgentListingModal, setShowAgentListingModal] = useState(false);
+  const [showAgentPhoneCallModal, setShowAgentPhoneCallModal] = useState(false);
 
   const { data: messages, refetch: refetchMessages } =
     trpc.chat.getConversationMessages.useQuery(
@@ -107,6 +108,10 @@ export default function Chat({
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
   }, [messages]);
+
+  useEffect(() => {
+    setShowAgentPhoneCallModal(true);
+  }, []);
 
   const renderMessage = ({
     item,
@@ -201,8 +206,8 @@ export default function Chat({
       </View>
 
       <PhoneCallDialog
-        visible={true}
-        onClose={() => {}}
+        visible={showAgentPhoneCallModal}
+        onClose={() => setShowAgentPhoneCallModal(false)}
         agentName={agentName}
         agentPhoto={agentPhoto}
       />

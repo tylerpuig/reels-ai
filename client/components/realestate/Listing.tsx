@@ -42,15 +42,15 @@ type HouseListingProps = {
   listingId: string;
 };
 
-function formatPhoneNumber(phonNumber: string): string {
+function formatPhoneNumber(phoneNumber: string): string {
   try {
-    if (!phonNumber) return "";
-    const cleaned = phonNumber.toString().replace(/\D/g, "");
+    if (!phoneNumber) return "";
+    const cleaned = phoneNumber.toString().replace(/\D/g, "");
     const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
       return `(${match[1]}) ${match[2]}-${match[3]}`;
     }
-    return phonNumber;
+    return phoneNumber;
   } catch (_) {}
   return "";
 }
@@ -66,6 +66,8 @@ export default function HomeListing({ listingId }: HouseListingProps) {
   const { session } = useSessionStore();
   const pathname = usePathname();
   const [showContactModal, setShowContactModal] = useState(false);
+
+  console.log("listingId", listingId);
 
   const { data: listingData, isLoading } =
     trpc.listings.getListingDetails.useQuery({
