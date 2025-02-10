@@ -38,7 +38,7 @@ async function makeRequest() {
           prompt:
             "Make a video that pans around a house and starts with this image",
           start_image_url:
-            "https://photos.zillowstatic.com/fp/9a8a6422699e779e005b63c45523cc66-cc_ft_768.webp",
+            "https://photos.zillowstatic.com/fp/a50e286e978e77a44d88385f3d1147db-cc_ft_384.webp",
         },
       },
     });

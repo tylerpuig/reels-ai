@@ -2,6 +2,7 @@ import { View, TouchableOpacity, Modal, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useListingStore } from "./useListingStore";
 import InteriorDesignerModal from "./InteriorDesignerModal";
+import VideoPlayer from "./integrations/3d/VideoPlayer";
 
 export default function ListingImageModal() {
   const {
@@ -32,12 +33,16 @@ export default function ListingImageModal() {
           <ListingPhotoToggle />
           {/* Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Interior Designer ✨</Text>
+            <Text style={styles.modalTitle}>
+              {selectedTab === "designer" ? "Interior Designer" : "3D Viewer"}{" "}
+              ✨
+            </Text>
             <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
           </View>
           {selectedTab === "designer" && <InteriorDesignerModal />}
+          {selectedTab === "3dviewer" && <VideoPlayer />}
           {/* <InteriorDesignerModal /> */}
         </View>
       </View>
