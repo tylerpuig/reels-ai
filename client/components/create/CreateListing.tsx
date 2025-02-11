@@ -29,7 +29,7 @@ import { Video, House } from "lucide-react-native";
 import { Info } from "lucide-react-native";
 import { type PhotoGalleryPhoto } from "../../components/create/PhotoGallery";
 
-export default function ListingForm() {
+export default function CreateListing() {
   const { session } = useSessionStore();
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -114,10 +114,7 @@ export default function ListingForm() {
   );
 
   return (
-    <ScrollView
-      className="flex-1 bg-[#0a0a0a] px-4 mt-20 mb-24"
-      ref={scrollViewRef}
-    >
+    <ScrollView className="flex-1 bg-[#0a0a0a] px-4 mb-24" ref={scrollViewRef}>
       <Accordion
         type="multiple"
         collapsible

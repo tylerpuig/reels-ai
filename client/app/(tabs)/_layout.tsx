@@ -36,7 +36,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="create"
         options={{
           title: "Create",
@@ -44,7 +44,7 @@ export default function TabLayout() {
             <IconSymbol size={28} name="video.fill" color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="likes"
         options={{
@@ -64,15 +64,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="search"
         options={{
           title: "Search",
@@ -82,6 +73,15 @@ export default function TabLayout() {
               name="magnifyingglass.circle.fill"
               color={color}
             />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="person.fill" color={color} />
           ),
         }}
       />

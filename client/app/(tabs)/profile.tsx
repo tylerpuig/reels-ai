@@ -58,6 +58,11 @@ export default function ProfileScreen() {
       route: "/viewprofile/[id]",
       params: { id: session?.user?.id ?? "" },
     },
+    {
+      label: "New Listing",
+      icon: "home-outline",
+      route: "/(modals)/createlisting",
+    },
     { label: "Manage Ads", icon: "megaphone-outline", route: "/manage-ads" },
     {
       label: "Saved Listings",

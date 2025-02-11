@@ -139,8 +139,6 @@ export async function autoAgentReply(
     const result = response?.choices?.[0]?.message?.parsed;
     if (!result) return;
 
-    console.log(result);
-
     // insert message into database
     await db.insert(schema.messagesTable).values({
       conversationId: conversationId,
