@@ -63,7 +63,12 @@ export default function ProfileScreen() {
       icon: "home-outline",
       route: "/(modals)/createlisting",
     },
-    { label: "Manage Ads", icon: "megaphone-outline", route: "/manage-ads" },
+    {
+      label: "Manage Ads",
+      icon: "megaphone-outline",
+      route: "/(modals)/adMetrics/[id]",
+      params: { id: "100" },
+    },
     {
       label: "Saved Listings",
       icon: "heart-outline",

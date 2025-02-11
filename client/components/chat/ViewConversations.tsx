@@ -15,6 +15,7 @@ import { useSessionStore } from "@/hooks/useSession";
 import { type ConversationData } from "../../trpc/types";
 import { Swipeable } from "react-native-gesture-handler";
 import { Trash } from "lucide-react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const RightActions = (
   progress: Animated.AnimatedInterpolation<number>,
@@ -119,8 +120,6 @@ export function ConversationList({
     </View>
   );
 }
-
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export function ViewConversationList() {
   const router = useRouter();

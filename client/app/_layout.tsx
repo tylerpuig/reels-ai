@@ -156,6 +156,18 @@ export default function RootLayout() {
                   gestureDirection: "horizontal",
                 }}
               />
+              <Stack.Screen
+                name="(modals)/adMetrics/[id]"
+                options={{
+                  headerShown: true,
+                  headerBackTitle: "Manage Ads",
+                  title: "Ad Metrics",
+                  presentation: "card",
+                  animation: "slide_from_right",
+                  gestureEnabled: true,
+                  gestureDirection: "horizontal",
+                }}
+              />
             </Stack>
             <StatusBar style="auto" />
             <PortalHost />
