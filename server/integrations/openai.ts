@@ -155,3 +155,19 @@ export async function autoAgentReply(
     console.log(err);
   }
 }
+
+export async function getEmbeddingFromText(text: string) {
+  try {
+    const response = await openai.embeddings.create({
+      model: "text-embedding-3-large",
+      input: text,
+      dimensions: 1536,
+    });
+
+    if (response.data[0].embedding) {
+      return response.data[0].embedding;
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}

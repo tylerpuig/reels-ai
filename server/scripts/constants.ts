@@ -15,3 +15,4 @@ export const exampleRoomImage = process.env.EXAMPLE_ROOM_IMAGE!;
 export const databaseUrl = process.env.DATABASE_URL!;
 export const seedUserId = process.env.SEED_USER_ID!;
 export const replicateApiToken = process.env.REPLICATE_API_TOKEN!;
+export const openAIApiKey = process.env.OPENAI_API_KEY!;
