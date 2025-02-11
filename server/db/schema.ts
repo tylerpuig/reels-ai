@@ -108,6 +108,7 @@ export const videosTable = pgTable(
     ),
   ]
 );
+
 export const adsTable = pgTable(
   "ads",
   {
