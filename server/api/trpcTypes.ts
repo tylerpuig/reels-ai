@@ -31,3 +31,7 @@ export type AgentListing = NonNullable<
 export type SimilarVideoResult = NonNullable<
   RouterOutputs["videos"]["getSimilarVideos"][number]
 >;
+
+export type AdItem = NonNullable<RouterOutputs["ads"]["getUserAds"][number]>;
+
+export type AdMetrics = NonNullable<RouterOutputs["ads"]["getAdMetrics"]>;

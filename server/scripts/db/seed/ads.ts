@@ -12,7 +12,7 @@ async function seedDatabase() {
     {
       userId,
       videoId: videoIds[0],
-      title: "Stunning Interior",
+      title: "471 McVaney Road",
       description:
         "Promoting a home that's been on the market for over a year, this home boasts a stunning interior with a modern kitchen, a spacious living room, and a luxurious master bedroom.",
       bidAmount: "5.5", // $5.50 per 1000 impressions
@@ -23,7 +23,7 @@ async function seedDatabase() {
     {
       userId,
       videoId: videoIds[1],
-      title: "Brand New Listing",
+      title: "2012 Ferguson Street",
       description: "New listing that is expected to sell in the next 30 days.",
       bidAmount: "7.25",
       dailyBudget: "150.0",
