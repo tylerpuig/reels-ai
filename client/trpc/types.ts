@@ -7,3 +7,4 @@ export type PublicProfileData = TrpcTypes.PublicProfileData;
 export type ConversationData = TrpcTypes.ConversationData;
 export type ConversationMessage = TrpcTypes.ConversationMessage;
 export type AgentListing = TrpcTypes.AgentListing;
+export type SimilarVideoResult = TrpcTypes.SimilarVideoResult;

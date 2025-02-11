@@ -27,3 +27,7 @@ export type ConversationMessage = NonNullable<
 export type AgentListing = NonNullable<
   RouterOutputs["listings"]["getListingsByAgent"][number]
 >;
+
+export type SimilarVideoResult = NonNullable<
+  RouterOutputs["videos"]["getSimilarVideos"][number]
+>;

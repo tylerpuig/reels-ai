@@ -3,8 +3,9 @@ import { z } from "zod";
 import { protectedProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
-import { and, eq, sql, desc, asc } from "drizzle-orm";
+import { and, eq, sql, desc, asc, cosineDistance } from "drizzle-orm";
 import { generatePresignedUrl } from "../../integrations/s3.js";
+import { getEmbeddingFromText } from "../../integrations/openai.js";
 
 export const videosRouter = createTRPCRouter({
   getVideos: protectedProcedure
@@ -253,5 +254,56 @@ export const videosRouter = createTRPCRouter({
           commentCount: sql`${schema.videosTable.commentCount} - 1`,
         })
         .where(eq(schema.videosTable.id, input.videoId));
+    }),
+  getSimilarVideos: protectedProcedure
+    .input(
+      z.object({
+        text: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      const embedding = await getEmbeddingFromText(input.text);
+      if (!embedding) {
+        throw new Error("Failed to generate embedding");
+      }
+      const similarity = sql<number>`1 - (${cosineDistance(
+        schema.framesEmbeddingsTable.embedding,
+        embedding
+      )})`;
+
+      const results = await db
+        .select({
+          id: schema.videosTable.id,
+          title: schema.videosTable.title,
+          videoUrl: schema.videosTable.videoUrl,
+          thumbnailUrl: schema.videosTable.thumbnailUrl,
+          similarity: similarity,
+        })
+        .from(schema.framesEmbeddingsTable)
+        .leftJoin(
+          schema.videosTable,
+          eq(schema.framesEmbeddingsTable.videoId, schema.videosTable.id)
+        )
+        .orderBy((t) => desc(t.similarity))
+        .limit(10);
+
+      const resultSet = new Set<number | null>(
+        results.map((result) => result.id)
+      );
+
+      const formattedResults = [];
+      for (const id of resultSet) {
+        formattedResults.push({
+          id: id ?? null,
+          title: results.find((result) => result.id === id)?.title ?? "",
+          videoUrl: results.find((result) => result.id === id)?.videoUrl ?? "",
+          thumbnailUrl:
+            results.find((result) => result.id === id)?.thumbnailUrl ?? "",
+          similarity:
+            results.find((result) => result.id === id)?.similarity ?? 0,
+        });
+      }
+
+      return formattedResults;
     }),
 });

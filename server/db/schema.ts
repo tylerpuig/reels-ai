@@ -321,3 +321,24 @@ export const messagesTable = pgTable(
     ),
   ]
 );
+
+export const framesEmbeddingsTable = pgTable(
+  "frames_embeddings",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    videoId: integer("video_id")
+      .references(() => videosTable.id, { onDelete: "cascade" })
+      .notNull(),
+    embedding: vector("embedding", { dimensions: 1536 }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (frames) => [
+    index("frames_listing_idx").on(frames.videoId),
+    index("frames_embedding_idx").using(
+      "hnsw",
+      frames.embedding.op("vector_cosine_ops")
+    ),
+  ]
+);
