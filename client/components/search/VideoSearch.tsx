@@ -16,11 +16,14 @@ import { useVideoStore } from "../video/useVideoStore";
 export default function SearchView() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
   const { setInitialVideoId } = useVideoStore();
   const { data: videos, refetch } = trpc.videos.getSimilarVideos.useQuery(
-    { text: searchQuery },
     {
-      enabled: false,
+      text: activeSearch,
+    },
+    {
+      enabled: activeSearch !== "",
     }
   );
 
@@ -35,7 +38,8 @@ export default function SearchView() {
       setInitialVideoId(item.id);
       router.push("/");
     };
-    const randVideoViews = Math.floor(Math.random() * 800_000).toLocaleString();
+
+    const randVideoViews = Math.floor(Math.random() * 100_000).toLocaleString();
     return (
       <TouchableOpacity
         onPress={() => {
@@ -60,6 +64,8 @@ export default function SearchView() {
   };
 
   const handleSearch = () => {
+    if (!searchQuery) return;
+    setActiveSearch(searchQuery);
     refetch();
   };
 
