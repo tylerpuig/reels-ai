@@ -31,13 +31,14 @@ export function PhoneCallDialog({
 }: PhoneCallDialogProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
-  const [wavePhase, setWavePhase] = useState(0);
-  const waveAnimations = [...Array(10)].map(() => new Animated.Value(0));
+  const [waveAnimations, setWaveAnimations] = useState(
+    [...Array(10)].map(() => new Animated.Value(Math.random()))
+  );
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
   const { session } = useSessionStore();
 
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
 
   const getPresignedUrl = trpc.user.getPresignedS3Url.useMutation();
   const respondToUserVoiceMessage =
@@ -73,6 +74,8 @@ export function PhoneCallDialog({
         };
       });
 
+      setIsPlayingSound(true);
+
       // Play using Expo Audio (built into React Native)
       const { sound } = await Audio.Sound.createAsync(
         { uri: base64Data as string },
@@ -83,6 +86,7 @@ export function PhoneCallDialog({
       sound.setOnPlaybackStatusUpdate(async (status) => {
         if (status.isLoaded && status.didJustFinish) {
           await sound.unloadAsync();
+          setIsPlayingSound(false);
         }
       });
     } catch (error) {
@@ -127,21 +131,6 @@ export function PhoneCallDialog({
 
     if (!uri) return;
 
-    // const { sound: newSound } = await Audio.Sound.createAsync(
-    //   { uri },
-    //   { shouldPlay: true } // Auto-play the recording
-    // );
-    // setSound(newSound);
-
-    // Optional: Listen for when playback finishes
-    // newSound.setOnPlaybackStatusUpdate((status) => {
-    //   if (status.isLoaded && status.didJustFinish) {
-    //     // Cleanup when playback finishes
-    //     newSound.unloadAsync();
-    //     setSound(null);
-    //   }
-    // });
-
     const fileName = "recordings/" + new Date().toISOString() + ".m4a";
     // Create blob from URI
     const response = await fetch(uri);
@@ -173,32 +162,6 @@ export function PhoneCallDialog({
     console.log(aiReponse);
 
     await playTTS(aiReponse.response);
-    // playAudio(audio);
-
-    // Create FormData to send the file
-    // if (uri) {
-    //   const formData = new FormData();
-    //   formData.append("file", {
-    //     uri,
-    //     type: "audio/m4a", // or the appropriate mime type
-    //     name: "recording.m4a",
-    //   } as any);
-
-    //   try {
-    //     // Send to your backend
-    //     const response = await fetch("YOUR_BACKEND_URL/transcribe", {
-    //       method: "POST",
-    //       body: formData,
-    //       headers: {
-    //         "Content-Type": "multipart/form-data",
-    //       },
-    //     });
-    //     const result = await response.json();
-    //     console.log("Transcription:", result);
-    //   } catch (error) {
-    //     console.error("Error uploading file:", error);
-    //   }
-    // }
 
     setRecording(null);
   }
@@ -214,42 +177,40 @@ export function PhoneCallDialog({
     return () => clearInterval(timer);
   }, [visible]);
 
-  // Animate audio waves
   useEffect(() => {
-    const animate = () => {
-      const animations = waveAnimations.map((anim, index) => {
-        // Create a random initial delay for each bar to create a more natural wave effect
-        const randomDelay = Math.random() * 1000;
+    waveAnimations.forEach((anim) => anim.setValue(0.3));
 
-        return Animated.loop(
+    const animate = () => {
+      Animated.stagger(
+        10,
+        waveAnimations.map((anim) =>
           Animated.sequence([
             Animated.timing(anim, {
-              toValue: 1,
-              duration: 1000,
+              toValue: Math.random() * (1 - 0.6) + 0.6,
+              duration: Math.random() * (600 - 400) + 300,
               useNativeDriver: true,
-              delay: randomDelay,
             }),
             Animated.timing(anim, {
-              toValue: 0.3,
-              duration: 1000,
+              toValue: Math.random() * (0.4 - 0.2) + 0.2,
+              duration: Math.random() * (600 - 400) + 300,
               useNativeDriver: true,
             }),
           ])
-        );
+        )
+      ).start(() => {
+        animate();
       });
-
-      // Start all animations
-      animations.forEach((animation) => animation.start());
     };
 
-    if (visible && !isMuted) {
-      animate();
-    }
+    animate();
 
     return () => {
-      waveAnimations.forEach((anim) => anim.stopAnimation());
+      waveAnimations.forEach((anim) => {
+        anim.stopAnimation();
+        anim.setValue(0.3);
+      });
     };
-  }, [visible, isMuted]);
+  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -275,7 +236,7 @@ export function PhoneCallDialog({
           </View>
 
           {/* Audio Waves */}
-          {!isMuted && (
+          {!isMuted && isPlayingSound && (
             <View style={styles.waveContainer}>
               {waveAnimations.map((anim, index) => (
                 <Animated.View
