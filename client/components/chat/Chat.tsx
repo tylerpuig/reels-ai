@@ -109,10 +109,6 @@ export default function Chat({
     }, 100);
   }, [messages]);
 
-  useEffect(() => {
-    setShowAgentPhoneCallModal(true);
-  }, []);
-
   const renderMessage = ({
     item,
     userId,
@@ -196,7 +192,8 @@ export default function Chat({
           {/* Phone Call Button */}
           <TouchableOpacity
             onPress={() => {
-              makePhoneCall("+12345678901");
+              setShowAgentPhoneCallModal(true);
+              // makePhoneCall("+12345678901");
             }}
             className="w-10 h-10 bg-zinc-900 rounded-full items-center justify-center ml-4"
           >
@@ -206,6 +203,7 @@ export default function Chat({
       </View>
 
       <PhoneCallDialog
+        conversationId={conversationId}
         visible={showAgentPhoneCallModal}
         onClose={() => setShowAgentPhoneCallModal(false)}
         agentName={agentName}
