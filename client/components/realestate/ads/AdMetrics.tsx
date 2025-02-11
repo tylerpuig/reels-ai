@@ -1,58 +1,46 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import { trpc } from "../../../trpc/client";
 
-interface AdMetric {
-  date: string;
-  value: number;
-}
-
-type AdMetricsProps = {
+type SingleAdMetricsProps = {
   adId: number;
 };
 
-const mockData = {
-  impressions: [
-    { date: "10 Apr", value: 240 },
-    { date: "11 Apr", value: 280 },
-    { date: "12 Apr", value: 350 },
-    { date: "13 Apr", value: 370 },
-    { date: "14 Apr", value: 290 },
-    { date: "15 Apr", value: 220 },
-  ],
-  clicks: [
-    // Similar structure for clicks data
-  ],
-  spend: [
-    // Similar structure for spend data
-  ],
-  totalImpressions: 1750,
-  totalClicks: 125,
-  totalSpend: 450,
-};
-
-export const AdMetrics = ({ adId }: AdMetricsProps) => {
-  const maxValue = Math.max(...mockData.impressions.map((i) => i.value));
+export const SingleAdMetrics = ({ adId }: SingleAdMetricsProps) => {
+  const { data: adMetrics } = trpc.ads.getAdMetrics.useQuery({
+    adId: Number(adId),
+  });
+  const maxValue = Math.max(
+    ...(adMetrics?.impressions ?? []).map((i) => i.impressions)
+  );
   const spacing = Math.ceil(maxValue / 5 / 100) * 100;
 
-  console.log("adId: ", adId);
+  const totalClicks = adMetrics?.impressions.reduce((acc, cur) => {
+    return acc + cur.clicks;
+  }, 0);
 
-  const renderDot = () => {
-    return (
-      <View
-        style={{
-          height: 20,
-          width: 20,
-          borderRadius: 10,
-          backgroundColor: "#0a0a0a",
-          borderWidth: 3,
-          borderColor: "#22c55e",
-        }}
-      />
-    );
-  };
+  const totalImpressions = adMetrics?.impressions.reduce((acc, cur) => {
+    return acc + cur.impressions;
+  }, 0);
+
+  const totalSpend = (Number(adMetrics?.adDetails?.dailyBudget) ?? 0) * 7;
+
+  const chartData = (adMetrics?.impressions ?? [])
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Sort chronologically
+    .map((el) => ({
+      value: el.impressions,
+      dataPointText: el.impressions.toString(),
+      textColor: "white",
+      label: new Date(el.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      date: new Date(el.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+    }));
 
   return (
     <View className="flex-1 bg-[#0a0a0a] p-5">
@@ -60,21 +48,21 @@ export const AdMetrics = ({ adId }: AdMetricsProps) => {
       <View className="flex-row justify-between items-center py-4 px-5 bg-zinc-900 rounded-xl mb-6">
         <View className="items-center flex-1">
           <Text className="text-lg font-bold text-white mb-1">
-            {mockData.totalImpressions.toLocaleString()}
+            {(totalImpressions ?? 0).toLocaleString()}
           </Text>
           <Text className="text-xs text-zinc-400">Impressions</Text>
         </View>
         <View className="w-px h-8 bg-zinc-800" />
         <View className="items-center flex-1">
           <Text className="text-lg font-bold text-white mb-1">
-            {mockData.totalClicks.toLocaleString()}
+            {(totalClicks ?? 0).toLocaleString()}
           </Text>
           <Text className="text-xs text-zinc-400">Clicks</Text>
         </View>
         <View className="w-px h-8 bg-zinc-800" />
         <View className="items-center flex-1">
           <Text className="text-lg font-bold text-white mb-1">
-            ${mockData.totalSpend.toLocaleString()}
+            ${totalSpend.toLocaleString()}
           </Text>
           <Text className="text-xs text-zinc-400">Spend</Text>
         </View>
@@ -87,17 +75,14 @@ export const AdMetrics = ({ adId }: AdMetricsProps) => {
         </Text>
         <LineChart
           areaChart
-          data={mockData.impressions.map((i) => ({
-            value: i.value,
-            dataPointText: i.value.toString(),
-            label: i.date,
-          }))}
+          data={chartData}
           height={200}
-          spacing={spacing}
+          // spacing={spacing}
+          spacing={60}
           initialSpacing={10}
           color="#22c55e"
           thickness={2}
-          maxValue={maxValue}
+          maxValue={maxValue + 200}
           noOfSections={5}
           yAxisTextStyle={{ color: "#a1a1aa" }}
           xAxisLabelTextStyle={{ color: "#a1a1aa" }}
@@ -111,32 +96,22 @@ export const AdMetrics = ({ adId }: AdMetricsProps) => {
           yAxisColor="transparent"
           xAxisColor="transparent"
           hideYAxisText={false}
-          //   renderDataPoint={renderDot}
-          //   customDataPoint={renderDot}
           focusEnabled
-          //   CustomLine={() => (
-          //     <LinearGradient
-          //       start={{ x: 0, y: 0 }}
-          //       end={{ x: 0, y: 1 }}
-          //       colors={["#22c55e", "#22c55e10"]}
-          //       style={{
-          //         flex: 1,
-          //         borderRadius: 16,
-          //       }}
-          //     />
-          //   )}
           pointerConfig={{
             pointerStripHeight: 160,
             pointerStripColor: "#27272a",
             pointerStripWidth: 2,
             pointerColor: "#22c55e",
+            // pointerColor: "#FFFFFF",
             radius: 6,
             pointerLabelWidth: 100,
             pointerLabelHeight: 90,
             activatePointersOnLongPress: true,
             autoAdjustPointerLabelPosition: false,
-            pointerLabelComponent: (items) => {
-              const item = items[0];
+            pointerLabelComponent: (
+              items: { value: number; date: string }[]
+            ) => {
+              const item = items?.[0] ?? { value: 0, date: "" };
               return (
                 <View className="bg-zinc-800 p-2 rounded-lg">
                   <Text className="text-white text-xs">{item.date}</Text>

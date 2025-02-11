@@ -66,8 +66,7 @@ export default function ProfileScreen() {
     {
       label: "Manage Ads",
       icon: "megaphone-outline",
-      route: "/(modals)/adMetrics/[id]",
-      params: { id: "100" },
+      route: "/(modals)/adMetrics/adList",
     },
     {
       label: "Saved Listings",

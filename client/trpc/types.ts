@@ -8,3 +8,5 @@ export type ConversationData = TrpcTypes.ConversationData;
 export type ConversationMessage = TrpcTypes.ConversationMessage;
 export type AgentListing = TrpcTypes.AgentListing;
 export type SimilarVideoResult = TrpcTypes.SimilarVideoResult;
+export type AdItem = TrpcTypes.AdItem;
+export type AdMetrics = TrpcTypes.AdMetrics;
