@@ -44,6 +44,29 @@ export async function generatePresignedUrl(fileName: string) {
   }
 }
 
+export async function generatePresignedUrlAudioRecording(fileName: string) {
+  try {
+    const isM4aFile = fileName.toLowerCase().endsWith(".m4a");
+    const contentType = isM4aFile ? "audio/m4a" : "audio/mpeg"; // Default to mp3 if not m4a
+
+    const command = new PutObjectCommand({
+      Bucket: s3BucketName,
+      Key: `voice-recordings/${Date.now()}-${fileName}`, // Added voice-recordings/ prefix for organization
+      ContentType: contentType,
+    });
+
+    const uploadUrl = await getSignedUrl(s3Client, command, {
+      expiresIn: 3600,
+    });
+    const fileUrl = `https://${s3BucketName}.s3.${awsRegion}.amazonaws.com/${command.input.Key}`;
+
+    return { uploadUrl, fileUrl };
+  } catch (error) {
+    console.error("Error generating pre-signed URL:", error);
+    throw error; // Re-throw to handle it in the calling function
+  }
+}
+
 export async function uploadImageToS3FromUrl(
   imageUrl: string,
   fileName: string

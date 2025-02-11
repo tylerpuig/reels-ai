@@ -2,7 +2,7 @@ import { db } from "../db/index.js";
 import * as schema from "../db/schema.js";
 import { eq, asc } from "drizzle-orm";
 import { zodResponseFormat } from "openai/helpers/zod";
-import openAI from "openai";
+import openAI, { toFile } from "openai";
 import { z } from "zod";
 import { type ListingInfo } from "../db/types.js";
 
@@ -167,5 +167,90 @@ export async function getEmbeddingFromText(text: string) {
     }
   } catch (error) {
     console.error("Error:", error);
+  }
+}
+
+export async function getTextFromAudio(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+
+    const transcription = await openai.audio.transcriptions.create({
+      file: await toFile(response),
+      model: "whisper-1",
+    });
+
+    return transcription.text;
+  } catch (err) {
+    console.log(err);
+  }
+
+  return "Sorry, an error occurred";
+}
+
+export async function respondToUserVoiceMessage(
+  fileUrl: string,
+  conversationId: number,
+  userId: string
+) {
+  try {
+    const conversationHistory = await db
+      .select()
+      .from(schema.messagesTable)
+      .where(eq(schema.messagesTable.conversationId, conversationId))
+      .orderBy(asc(schema.messagesTable.createdAt))
+      .limit(10);
+
+    const messages = conversationHistory.map((message) => {
+      return {
+        role: message.senderId === userId ? "user" : "assistant",
+        content: message.content,
+        metadata: message.metadata,
+      };
+    });
+
+    const [conversationInfo] = await db
+      .select()
+      .from(schema.conversationsTable)
+      .where(eq(schema.conversationsTable.id, conversationId))
+      .limit(1);
+
+    const [listingInfo] = await db
+      .select()
+      .from(schema.listingsTable)
+      .where(eq(schema.listingsTable.id, conversationInfo.listingId!))
+      .limit(1);
+
+    const userText = await getTextFromAudio(fileUrl);
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `You are a help ful assistant that is replying on the behlf of a real estate agent. You are helping the user with their real estate listing. You will be replying to the user's messages in a helpful way.
+          
+          You are allowed to make up information for the sake of keeping the conversation going. Your response should be 1-3 sentences depending on the needed response.
+          
+          
+          Here are the previous messages:
+          ${JSON.stringify(messages, null, 2)}
+          
+          Here is the home listing information:
+          ${JSON.stringify(listingInfo ?? "{}", null, 2)}
+
+          `,
+        },
+        {
+          role: "user",
+          content: `${userText}`,
+        },
+      ],
+    });
+
+    if (response.choices[0].message.content) {
+      return response.choices[0].message.content;
+    }
+  } catch (err) {
+    console.log(err);
   }
 }

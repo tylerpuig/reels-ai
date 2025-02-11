@@ -5,7 +5,10 @@ import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
 import { faker } from "@faker-js/faker";
 import { eq, and, desc } from "drizzle-orm";
-import { generatePresignedUrl } from "../../integrations/s3.js";
+import {
+  generatePresignedUrl,
+  generatePresignedUrlAudioRecording,
+} from "../../integrations/s3.js";
 
 export const userRouter = createTRPCRouter({
   newUser: publicProcedure
@@ -115,5 +118,20 @@ export const userRouter = createTRPCRouter({
         .limit(10);
 
       return { profile: userData, videos: userVideos };
+    }),
+  getPresingedUrlForAudioRecording: protectedProcedure
+    .input(
+      z.object({
+        fileName: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const result = await generatePresignedUrlAudioRecording(input.fileName);
+
+      if (!result) {
+        throw new Error("Failed to generate pre-signed URL");
+      }
+
+      return { uploadUrl: result.uploadUrl, fileUrl: result.fileUrl };
     }),
 });

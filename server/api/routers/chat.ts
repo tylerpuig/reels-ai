@@ -4,7 +4,10 @@ import { protectedProcedure } from "../trpc.js";
 import * as schema from "../../db/schema.js";
 import { db } from "../../db/index.js";
 import { asc, eq, or, desc, aliasedTable } from "drizzle-orm";
-import { autoAgentReply } from "../../integrations/openai.js";
+import {
+  autoAgentReply,
+  respondToUserVoiceMessage,
+} from "../../integrations/openai.js";
 
 export const chatRouter = createTRPCRouter({
   createConversationWithAgent: protectedProcedure
@@ -150,5 +153,22 @@ export const chatRouter = createTRPCRouter({
       await db
         .delete(schema.conversationsTable)
         .where(eq(schema.conversationsTable.id, input.conversationId));
+    }),
+  respondToUserVoiceMessage: protectedProcedure
+    .input(
+      z.object({
+        conversationId: z.number(),
+        fileUrl: z.string(),
+        userId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const result = await respondToUserVoiceMessage(
+        input.fileUrl,
+        input.conversationId,
+        input.userId
+      );
+
+      return { response: result ?? "" };
     }),
 });
