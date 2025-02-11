@@ -151,7 +151,7 @@ export default function Likes() {
   }, [pathname]);
 
   return (
-    <View className="flex-1 bg-[#121212] pt-16">
+    <View className="flex-1 bg-[#121212] pt-16 mb-24">
       <View className="flex-row border-b border-zinc-800">
         <TouchableOpacity
           className={`flex-1 py-4 items-center ${

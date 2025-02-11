@@ -71,22 +71,12 @@ export function AdsList({
         }}
         style={styles.conversationItem}
       >
-        {/* <Image
-          source={{ uri: item.recipientAvatarUrl ?? "" }}
-          style={styles.userImage}
-        /> */}
-
         <View style={styles.contentContainer}>
           <View style={styles.headerRow}>
             <Text style={styles.userName} numberOfLines={1}>
               {item.title}
             </Text>
-            {/* <Text style={styles.timeText}>{item.description}</Text> */}
           </View>
-
-          <Text style={styles.lastMessage} numberOfLines={1}>
-            {/* {item.lastMessage} */}
-          </Text>
 
           <Text style={styles.propertyAddress} numberOfLines={1}>
             Created on {item.createdAt.toISOString().slice(0, 10)}

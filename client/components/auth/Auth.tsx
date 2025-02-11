@@ -136,6 +136,10 @@ export default function Auth() {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#000", // or '#0a0a0a' if you prefer the current dark gray
+  },
   nwButton: {
     paddingVertical: 10,
   },
