@@ -91,7 +91,12 @@ export const videosRouter = createTRPCRouter({
 
           await db
             .delete(schema.videoLikesTable)
-            .where(eq(schema.videoLikesTable.userId, input.userId));
+            .where(
+              and(
+                eq(schema.videoLikesTable.userId, input.userId),
+                eq(schema.videoLikesTable.videoId, input.videoId)
+              )
+            );
         }
       } catch (error) {
         console.log(error);
